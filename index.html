@@ -47,6 +47,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.7)}}
 .add-btn{height:40px;padding:0 18px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .add-btn:active{background:#8B2D07;transform:scale(0.97)}
+.settings-btn{width:40px;height:40px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.settings-btn:active{background:var(--surface2)}
 
 /* STAT STRIP */
 .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
@@ -201,6 +203,22 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .action-btn.a-red{background:var(--red-light);border-color:var(--red);color:var(--red)}
 .action-btn.a-amber{background:var(--amber-light);border-color:var(--amber);color:var(--amber)}
 
+/* SETTINGS */
+.settings-member-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+.settings-member-info{flex:1;display:flex;align-items:center;gap:10px}
+.settings-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;flex-shrink:0}
+.settings-member-name-text{font-size:15px;font-weight:700}
+.settings-task-count{font-size:11px;color:var(--ink-faint);margin-top:1px}
+.settings-actions{display:flex;gap:8px}
+.icon-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--border);background:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.icon-btn:active{background:var(--surface2);transform:scale(0.93)}
+.add-member-btn{width:100%;padding:15px;border:2px dashed var(--border);border-radius:10px;background:none;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;color:var(--ink-mid);cursor:pointer;margin-top:4px;-webkit-tap-highlight-color:transparent;transition:all .15s;text-align:center}
+.add-member-btn:active{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.color-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-top:8px}
+.color-swatch{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.color-swatch.sel{border-color:var(--ink);transform:scale(1.18)}
+.color-swatch:active{transform:scale(0.88)}
+
 /* SCROLL */
 .view::-webkit-scrollbar{width:4px}
 .view::-webkit-scrollbar-track{background:transparent}
@@ -227,6 +245,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
     </div>
     <div class="header-actions">
       <div class="sync-pill"><div class="sync-dot"></div>Live</div>
+      <button class="settings-btn" onclick="openSettings()">⚙️</button>
       <button class="add-btn" onclick="openAddModal()">＋ Add Task</button>
     </div>
   </div>
@@ -376,12 +395,61 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settings-modal" onclick="backdropClose(event,'settings-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">⚙️ Team Settings</span>
+      <button class="modal-close" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="gap:0;padding-bottom:8px">
+      <div id="settings-member-list"></div>
+      <button class="add-member-btn" onclick="openMemberModal(null)">＋ Add New Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT / ADD MEMBER MODAL -->
+<div class="modal-backdrop" id="member-modal" onclick="backdropClose(event,'member-modal')" style="z-index:200">
+  <div class="modal-sheet" style="z-index:201">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="member-modal-title">Add Member</span>
+      <button class="modal-close" onclick="closeModal('member-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="field-label">Full Name</div>
+        <input class="field-input" type="text" placeholder="e.g. Nino" id="member-name-input" maxlength="30">
+      </div>
+      <div>
+        <div class="field-label">Color</div>
+        <div class="color-grid" id="color-grid"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveMember()">Save →</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const TEAM=[{name:"Nino",color:"#C2410C"},{name:"Giorgi",color:"#1D4ED8"},{name:"Ana",color:"#15803D"},{name:"Luka",color:"#7C3AED"},{name:"Mariam",color:"#B45309"},{name:"Davit",color:"#0891B2"},{name:"Tamar",color:"#DB2777"},{name:"Irakli",color:"#059669"}];
-const MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));
+const COLOR_PALETTE=[
+  "#C2410C","#1D4ED8","#15803D","#7C3AED",
+  "#B45309","#0891B2","#DB2777","#059669",
+  "#DC2626","#D97706","#0284C7","#6D28D9",
+  "#0F766E","#BE185D","#EA580C","#4F46E5"
+];
+
+let TEAM=[{name:"Nino",color:"#C2410C"},{name:"Giorgi",color:"#1D4ED8"},{name:"Ana",color:"#15803D"},{name:"Luka",color:"#7C3AED"},{name:"Mariam",color:"#B45309"},{name:"Davit",color:"#0891B2"},{name:"Tamar",color:"#DB2777"},{name:"Irakli",color:"#059669"}];
+let MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));
+function updateMC(){MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));}
+
 const PROJ_COLORS={"Tax Filings March":"#1D4ED8","Audit Q1 2025":"#15803D","Accounter MVP":"#B45309"};
 const today=new Date(); today.setHours(0,0,0,0);
-let taskCounter=13, currentDetailId=null, currentFilter='all';
+let taskCounter=13,currentDetailId=null,currentFilter='all',editingMemberName=null;
 
 function off(d){const x=new Date(today);x.setDate(x.getDate()+d);return x.toISOString().split('T')[0]}
 function days(s){const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000)}
@@ -407,8 +475,111 @@ function sClass(s){return{TODO:'s-todo',IN_PROGRESS:'s-inprog',BLOCKED:'s-blocke
 function pClass(p){return{HIGH:'pri-high',MEDIUM:'pri-medium',LOW:'pri-low'}[p]||''}
 
 function taskCard(t){
-  const d=days(t.due), done=t.status==='DONE', ov=d<0&&!done, td=d===0&&!done;
-  let dTxt=fmt(t.due), dCls='';
+  const d=days(t.due),done=t.status==='DONE',ov=d<0&&!done,td=d===0&&!done;
+  let dTxt=fmt(t.due),dCls='';
+  if(done){dTxt='✓ Done'}
+  else if(d<0){dTxt=`${Math.abs(d)}d overdue`;dCls='overdue'}
+  else if(d===0){dTxt='Due Today';dCls='today'}
+  else if(d===1){dTxt='Tomorrow'}
+  const c=MC[t.assignee]||'#888';
+  return`<div class="task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}" onclick="openDetail('${t.id}')">
+    <div class="task-top">
+      <div class="task-checkbox" onclick="event.stopPropagation();toggleDone('${t.id}')">${done?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          <span class="task-id">${t.id}</span>
+          <span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>
+        </div>
+      </div>
+    </div>
+    <div class="task-bottom">
+      <span class="status-pill ${sClass(t.status)}">${sLabel(t.status)}</span>
+      <span class="due-label ${dCls}">${dTxt}</span>
+    </div>
+  </div>`;
+}
+
+function renderTaskList(list){
+  const projs=[...new Set(list.map(t=>t.project))];
+  return projs.map(p=>{
+    const pt=list.filter(t=>t.project===p);
+    const c=PROJ_COLORS[p]||'#888';
+    return`<div class="project-group">
+      <div class="project-banner">
+        <div class="project-stripe" style="background:${c}"></div>
+        <span class="project-name">${p}</span>
+        <span class="project-badge">${pt.length}</span>
+      </div>
+      ${pt.map(taskCard).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderTasks(){
+  let list=tasks;
+  if(currentFilter==='todo') list=tasks.filter(t=>t.status==='TODO');
+  else if(currentFilter==='inprog') list=tasks.filter(t=>t.status==='IN_PROGRESS');
+  else if(currentFilter==='blocked') list=tasks.filter(t=>t.status==='BLOCKED');
+  else if(currentFilter==='done') list=tasks.filter(t=>t.status==='DONE');
+  const c=document.getElementById('tasks-container');
+  c.innerHTML=list.length?renderTaskList(list):'<div style="text-align:center;padding:48px;color:var(--ink-faint);font-size:15px">Nothing here 🎉</div>';
+  updateStats();
+}
+
+function renderProjects(){
+  const projs=[...new Set(tasks.map(t=>t.project))];
+  document.getElementById('projects-container').innerHTML=projs.map(p=>{
+    const pt=tasks.filter(t=>t.project===p);
+    const done=pt.filter(t=>t.status==='DONE').length;
+    const pct=pt.length?Math.round(done/pt.length*100):0;
+    const c=PROJ_COLORS[p]||'#888';
+    const members=[...new Set(pt.map(t=>t.assignee))];
+    return`<div class="project-card" onclick="goProjectTasks('${p}')">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:${c}"></div>
+      <div class="proj-top"><span class="proj-name">${p}</span><span class="proj-count">${pt.length} tasks</span></div>
+      <div class="proj-progress"><div class="proj-progress-fill" style="width<script>
+const COLOR_PALETTE=[
+  "#C2410C","#1D4ED8","#15803D","#7C3AED",
+  "#B45309","#0891B2","#DB2777","#059669",
+  "#DC2626","#D97706","#0284C7","#6D28D9",
+  "#0F766E","#BE185D","#EA580C","#4F46E5"
+];
+
+let TEAM=[{name:"Nino",color:"#C2410C"},{name:"Giorgi",color:"#1D4ED8"},{name:"Ana",color:"#15803D"},{name:"Luka",color:"#7C3AED"},{name:"Mariam",color:"#B45309"},{name:"Davit",color:"#0891B2"},{name:"Tamar",color:"#DB2777"},{name:"Irakli",color:"#059669"}];
+let MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));
+function updateMC(){MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));}
+
+const PROJ_COLORS={"Tax Filings March":"#1D4ED8","Audit Q1 2025":"#15803D","Accounter MVP":"#B45309"};
+const today=new Date(); today.setHours(0,0,0,0);
+let taskCounter=13,currentDetailId=null,currentFilter='all',editingMemberName=null;
+
+function off(d){const x=new Date(today);x.setDate(x.getDate()+d);return x.toISOString().split('T')[0]}
+function days(s){const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000)}
+function fmt(s){return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+
+let tasks=[
+  {id:"T001",title:"Submit VAT returns — TechCorp",project:"Tax Filings March",assignee:"Nino",due:off(0),priority:"HIGH",status:"IN_PROGRESS"},
+  {id:"T002",title:"Review quarterly deductions — MegaCorp",project:"Tax Filings March",assignee:"Giorgi",due:off(-2),priority:"HIGH",status:"TODO"},
+  {id:"T003",title:"Prepare income tax documentation — StarGroup",project:"Tax Filings March",assignee:"Ana",due:off(-3),priority:"MEDIUM",status:"DONE"},
+  {id:"T004",title:"Client data reconciliation — BioLab",project:"Tax Filings March",assignee:"Mariam",due:off(0),priority:"HIGH",status:"BLOCKED"},
+  {id:"T005",title:"Internal controls assessment — GlobalTrade",project:"Audit Q1 2025",assignee:"Luka",due:off(3),priority:"HIGH",status:"IN_PROGRESS"},
+  {id:"T006",title:"Fixed assets verification — Sunrise Holdings",project:"Audit Q1 2025",assignee:"Davit",due:off(6),priority:"MEDIUM",status:"TODO"},
+  {id:"T007",title:"Bank statement reconciliation — Orion JSC",project:"Audit Q1 2025",assignee:"Tamar",due:off(-3),priority:"MEDIUM",status:"IN_PROGRESS"},
+  {id:"T008",title:"RAG system testing — double taxation agreements",project:"Accounter MVP",assignee:"Nino",due:off(8),priority:"HIGH",status:"TODO"},
+  {id:"T009",title:"Power Automate flow — document collection",project:"Accounter MVP",assignee:"Irakli",due:off(11),priority:"MEDIUM",status:"IN_PROGRESS"},
+  {id:"T010",title:"Prepare audit report draft — GlobalTrade",project:"Audit Q1 2025",assignee:"Giorgi",due:off(4),priority:"HIGH",status:"TODO"},
+  {id:"T011",title:"Corporate tax filing — Omega Group",project:"Tax Filings March",assignee:"Ana",due:off(2),priority:"MEDIUM",status:"IN_PROGRESS"},
+  {id:"T012",title:"Payroll tax reconciliation — NovaTech",project:"Tax Filings March",assignee:"Davit",due:off(5),priority:"LOW",status:"TODO"},
+];
+
+function sLabel(s){return{TODO:'To Do',IN_PROGRESS:'In Progress',BLOCKED:'Blocked',DONE:'Done'}[s]||s}
+function sClass(s){return{TODO:'s-todo',IN_PROGRESS:'s-inprog',BLOCKED:'s-blocked',DONE:'s-done'}[s]||''}
+function pClass(p){return{HIGH:'pri-high',MEDIUM:'pri-medium',LOW:'pri-low'}[p]||''}
+
+function taskCard(t){
+  const d=days(t.due),done=t.status==='DONE',ov=d<0&&!done,td=d===0&&!done;
+  let dTxt=fmt(t.due),dCls='';
   if(done){dTxt='✓ Done'}
   else if(d<0){dTxt=`${Math.abs(d)}d overdue`;dCls='overdue'}
   else if(d===0){dTxt='Due Today';dCls='today'}
@@ -614,12 +785,95 @@ function saveTask(){
   if(!title){document.getElementById('new-title').focus();return}
   const project=document.getElementById('new-project').value;
   const due=document.getElementById('new-due').value;
-  const assignee=document.querySelector('.member-opt.sel .m-name')?.textContent||'Nino';
+  const assignee=document.querySelector('.member-opt.sel .m-name')?.textContent||TEAM[0]?.name||'Unknown';
   const pEl=document.querySelector('.priority-opt.sel');
   const priority=pEl?.classList.contains('p-high')?'HIGH':pEl?.classList.contains('p-low')?'LOW':'MEDIUM';
   const id='T'+String(taskCounter++).padStart(3,'0');
   tasks.unshift({id,title,project,assignee,due,priority,status:'TODO'});
   closeModal('add-modal'); renderTasks(); updateStats();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+
+function openSettings(){
+  renderSettingsList();
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function renderSettingsList(){
+  document.getElementById('settings-member-list').innerHTML=TEAM.map(m=>{
+    const open=tasks.filter(t=>t.assignee===m.name&&t.status!=='DONE').length;
+    const total=tasks.filter(t=>t.assignee===m.name).length;
+    return`<div class="settings-member-row">
+      <div class="settings-member-info">
+        <div class="settings-avatar" style="background:${m.color}">${m.name[0]}</div>
+        <div>
+          <div class="settings-member-name-text">${m.name}</div>
+          <div class="settings-task-count">${open} open · ${total} total</div>
+        </div>
+      </div>
+      <div class="settings-actions">
+        <button class="icon-btn" onclick="openMemberModal('${m.name}')">✏️</button>
+        <button class="icon-btn" onclick="deleteMember('${m.name}')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openMemberModal(memberName){
+  editingMemberName=memberName;
+  const isEdit=memberName!==null;
+  document.getElementById('member-modal-title').textContent=isEdit?'Edit Member':'Add Member';
+  const existing=isEdit?TEAM.find(m=>m.name===memberName):null;
+  const selectedColor=existing?existing.color:COLOR_PALETTE[0];
+  document.getElementById('color-grid').innerHTML=COLOR_PALETTE.map(c=>`<div class="color-swatch ${c===selectedColor?'sel':''}" style="background:${c}" onclick="selectSwatch(this)" data-color="${c}"></div>`).join('');
+  document.getElementById('member-name-input').value=isEdit?memberName:'';
+  document.getElementById('member-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('member-name-input').focus(),350);
+}
+
+function selectSwatch(el){
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveMember(){
+  const name=document.getElementById('member-name-input').value.trim();
+  if(!name){document.getElementById('member-name-input').focus();return;}
+  const colorEl=document.querySelector('.color-swatch.sel');
+  const color=colorEl?colorEl.dataset.color:COLOR_PALETTE[0];
+  if(editingMemberName===null){
+    if(TEAM.find(m=>m.name.toLowerCase()===name.toLowerCase())){
+      alert('A member with this name already exists.');return;
+    }
+    TEAM.push({name,color});
+  } else {
+    const oldName=editingMemberName;
+    const idx=TEAM.findIndex(m=>m.name===oldName);
+    if(idx===-1) return;
+    if(name!==oldName) tasks.forEach(t=>{if(t.assignee===oldName) t.assignee=name;});
+    TEAM[idx]={name,color};
+  }
+  updateMC();
+  closeModal('member-modal');
+  renderSettingsList();
+  renderTasks();
+  renderTeam();
+  updateStats();
+}
+
+function deleteMember(memberName){
+  const open=tasks.filter(t=>t.assignee===memberName&&t.status!=='DONE').length;
+  const msg=open>0
+    ?`${memberName} has ${open} open task(s). Remove them from the team anyway?`
+    :`Remove ${memberName} from the team?`;
+  if(!confirm(msg)) return;
+  TEAM=TEAM.filter(m=>m.name!==memberName);
+  updateMC();
+  renderSettingsList();
+  renderTasks();
+  renderTeam();
+  updateStats();
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open')}
@@ -634,3 +888,5 @@ renderTasks();
 </script>
 </body>
 </html>
+
+  
