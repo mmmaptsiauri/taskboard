@@ -114,6 +114,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .nav-item.active .nav-label{color:var(--accent)}
 .nav-badge{position:absolute;top:8px;right:calc(50% - 18px);background:var(--red);color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 .modal-backdrop{position:fixed;inset:0;background:rgba(26,23,20,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-backdrop *{pointer-events:none}
+.modal-backdrop.open *{pointer-events:auto}
 .modal-backdrop.open{opacity:1;pointer-events:auto}
 .modal-sheet,.detail-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:700px;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);max-height:92vh;overflow-y:auto}
 .modal-backdrop.open .modal-sheet,.modal-backdrop.open .detail-sheet{transform:translateY(0)}
@@ -271,7 +273,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 
 <!-- CONFIRM MODAL -->
 <div class="modal-backdrop" id="confirm-modal" onclick="if(event.target===this)closeConfirm()" style="z-index:300">
-  <div class="modal-sheet" style="z-index:301;max-width:340px;margin:auto">
+  <div class="modal-sheet" style="z-index:301;max-width:340px;margin:auto;pointer-events:auto">
     <div class="modal-body" style="padding:24px 20px 8px">
       <p id="confirm-msg" style="margin:0;font-size:15px;line-height:1.5;color:var(--text)"></p>
     </div>
