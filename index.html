@@ -114,8 +114,6 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .nav-item.active .nav-label{color:var(--accent)}
 .nav-badge{position:absolute;top:8px;right:calc(50% - 18px);background:var(--red);color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px}
 .modal-backdrop{position:fixed;inset:0;background:rgba(26,23,20,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-backdrop *{pointer-events:none}
-.modal-backdrop.open *{pointer-events:auto}
 .modal-backdrop.open{opacity:1;pointer-events:auto}
 .modal-sheet,.detail-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:700px;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .3s cubic-bezier(0.32,0.72,0,1);max-height:92vh;overflow-y:auto}
 .modal-backdrop.open .modal-sheet,.modal-backdrop.open .detail-sheet{transform:translateY(0)}
@@ -267,19 +265,6 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
         <button class="action-btn a-amber" onclick="detailAction('BLOCKED')">🚫 Blocked</button>
         <button class="action-btn a-red" style="grid-column:span 2" onclick="deleteTask()">🗑️ Delete Task</button>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- CONFIRM MODAL -->
-<div class="modal-backdrop" id="confirm-modal" onclick="if(event.target===this)closeConfirm()" style="z-index:300">
-  <div class="modal-sheet" style="z-index:301;max-width:340px;margin:auto;pointer-events:auto">
-    <div class="modal-body" style="padding:24px 20px 8px">
-      <p id="confirm-msg" style="margin:0;font-size:15px;line-height:1.5;color:var(--text)"></p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
-      <button class="btn-save" id="confirm-ok" style="background:#DC2626">Delete</button>
     </div>
   </div>
 </div>
@@ -610,7 +595,7 @@ function saveItem(){
   const isMember=editMode==='member';
   const list=isMember?TEAM:PROJECTS;
   if(editingIndex===-1){
-    if(list.find(x=>x.name.toLowerCase()===name.toLowerCase())){document.getElementById('item-name-input').style.border='2px solid #DC2626';document.getElementById('item-name-input').placeholder='Name already exists!';return;}
+    if(list.find(x=>x.name.toLowerCase()===name.toLowerCase())){alert((isMember?'A member':'A project')+' with this name already exists.');return;}
     list.push({name,color});
   } else {
     const old=list[editingIndex].name;
@@ -626,25 +611,14 @@ function saveItem(){
 function deleteItem(mode,index){
   const isMember=mode==='member';
   const list=isMember?TEAM:PROJECTS;
-  if(!list[index])return;
   const name=list[index].name;
   const open=tasks.filter(t=>(isMember?t.assignee:t.project)===name&&t.status!=='DONE').length;
-  const msg=open>0?'"'+name+'" has '+open+' open task(s). Remove anyway?':'Remove "'+name+'"?';
-  showConfirm(msg,function(){
-    list.splice(index,1);
-    if(isMember)updateMC();else updatePC();
-    saveData();
-    renderSettingsList();renderProjectList();
-    renderTasks();renderTeam();updateStats();
-  });
-}
-function showConfirm(msg,onOk){
-  document.getElementById('confirm-msg').textContent=msg;
-  document.getElementById('confirm-ok').onclick=function(){closeConfirm();onOk();};
-  document.getElementById('confirm-modal').classList.add('open');
-}
-function closeConfirm(){
-  document.getElementById('confirm-modal').classList.remove('open');
+  if(!confirm(open>0?`"${name}" has ${open} open task(s). Remove anyway?`:`Remove "${name}"?`))return;
+  list.splice(index,1);
+  if(isMember)updateMC();else updatePC();
+  saveData();
+  renderSettingsList();renderProjectList();
+  renderTasks();renderTeam();updateStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function backdropClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
