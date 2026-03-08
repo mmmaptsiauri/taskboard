@@ -269,6 +269,19 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="modal-backdrop" id="confirm-modal" onclick="if(event.target===this)closeConfirm()" style="z-index:300">
+  <div class="modal-sheet" style="z-index:301;max-width:340px;margin:auto">
+    <div class="modal-body" style="padding:24px 20px 8px">
+      <p id="confirm-msg" style="margin:0;font-size:15px;line-height:1.5;color:var(--text)"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-save" id="confirm-ok" style="background:#DC2626">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS MODAL -->
 <div class="modal-backdrop" id="settings-modal" onclick="backdropClose(event,'settings-modal')">
   <div class="modal-sheet">
@@ -595,7 +608,7 @@ function saveItem(){
   const isMember=editMode==='member';
   const list=isMember?TEAM:PROJECTS;
   if(editingIndex===-1){
-    if(list.find(x=>x.name.toLowerCase()===name.toLowerCase())){alert((isMember?'A member':'A project')+' with this name already exists.');return;}
+    if(list.find(x=>x.name.toLowerCase()===name.toLowerCase())){document.getElementById('item-name-input').style.border='2px solid #DC2626';document.getElementById('item-name-input').placeholder='Name already exists!';return;}
     list.push({name,color});
   } else {
     const old=list[editingIndex].name;
@@ -611,14 +624,25 @@ function saveItem(){
 function deleteItem(mode,index){
   const isMember=mode==='member';
   const list=isMember?TEAM:PROJECTS;
+  if(!list[index])return;
   const name=list[index].name;
   const open=tasks.filter(t=>(isMember?t.assignee:t.project)===name&&t.status!=='DONE').length;
-  if(!confirm(open>0?`"${name}" has ${open} open task(s). Remove anyway?`:`Remove "${name}"?`))return;
-  list.splice(index,1);
-  if(isMember)updateMC();else updatePC();
-  saveData();
-  renderSettingsList();renderProjectList();
-  renderTasks();renderTeam();updateStats();
+  const msg=open>0?'"'+name+'" has '+open+' open task(s). Remove anyway?':'Remove "'+name+'"?';
+  showConfirm(msg,function(){
+    list.splice(index,1);
+    if(isMember)updateMC();else updatePC();
+    saveData();
+    renderSettingsList();renderProjectList();
+    renderTasks();renderTeam();updateStats();
+  });
+}
+function showConfirm(msg,onOk){
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-ok').onclick=function(){closeConfirm();onOk();};
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirm-modal').classList.remove('open');
 }
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function backdropClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
