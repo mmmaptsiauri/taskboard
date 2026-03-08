@@ -191,7 +191,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
   <div class="top-header">
     <div class="logo-area"><h1>Task Board</h1><p id="todayDate">Loading...</p></div>
     <div class="header-actions">
-      <div class="sync-pill"><div class="sync-dot"></div>Live</div>
+      <div class="sync-pill"><div class="sync-dot"></div>Saved</div>
       <button class="settings-btn" onclick="openSettings()">⚙️</button>
       <button class="add-btn" onclick="openAddModal(null)">＋ Add Task</button>
     </div>
@@ -239,7 +239,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
         <div><div class="field-label">Due Date</div><input class="field-input" type="date" id="new-due"></div>
       </div>
       <div><div class="field-label">Assign To</div><div class="member-grid" id="member-grid"></div></div>
-      <div><div class="field-label">Priority</div><div class="priority-row" id="priority-row"><div class="priority-opt p-high" onclick="selPriority(this)">🔴 High</div><div class="priority-opt p-medium sel" onclick="selPriority(this)">🟡 Medium</div><div class="priority-opt p-low" onclick="selPriority(this)">🟢 Low</div></div></div>
+      <div><div class="field-label">Priority</div><div class="priority-row"><div class="priority-opt p-high" onclick="selPriority(this)">🔴 High</div><div class="priority-opt p-medium sel" onclick="selPriority(this)">🟡 Medium</div><div class="priority-opt p-low" onclick="selPriority(this)">🟢 Low</div></div></div>
     </div>
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-modal')">Cancel</button><button class="btn-save" onclick="saveTask()">Save Task →</button></div>
   </div>
@@ -306,19 +306,14 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 
 <script>
 const COLOR_PALETTE=["#C2410C","#1D4ED8","#15803D","#7C3AED","#B45309","#0891B2","#DB2777","#059669","#DC2626","#D97706","#0284C7","#6D28D9","#0F766E","#BE185D","#EA580C","#4F46E5"];
-let TEAM=[{name:"Nino",color:"#C2410C"},{name:"Giorgi",color:"#1D4ED8"},{name:"Ana",color:"#15803D"},{name:"Luka",color:"#7C3AED"},{name:"Mariam",color:"#B45309"},{name:"Davit",color:"#0891B2"},{name:"Tamar",color:"#DB2777"},{name:"Irakli",color:"#059669"}];
-let MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));
-function updateMC(){MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));}
-let PROJECTS=[{name:"Tax Filings March",color:"#1D4ED8"},{name:"Audit Q1 2025",color:"#15803D"},{name:"Accounter MVP",color:"#B45309"}];
-let PC=Object.fromEntries(PROJECTS.map(p=>[p.name,p.color]));
-function updatePC(){PC=Object.fromEntries(PROJECTS.map(p=>[p.name,p.color]));}
-const today=new Date();today.setHours(0,0,0,0);
-let taskCounter=13,currentDetailId=null,currentFilter='all',editingTaskId=null;
-let editMode='member',editingIndex=-1;
+
+const DEFAULT_TEAM=[{name:"Nino",color:"#C2410C"},{name:"Giorgi",color:"#1D4ED8"},{name:"Ana",color:"#15803D"},{name:"Luka",color:"#7C3AED"},{name:"Mariam",color:"#B45309"},{name:"Davit",color:"#0891B2"},{name:"Tamar",color:"#DB2777"},{name:"Irakli",color:"#059669"}];
+const DEFAULT_PROJECTS=[{name:"Tax Filings March",color:"#1D4ED8"},{name:"Audit Q1 2025",color:"#15803D"},{name:"Accounter MVP",color:"#B45309"}];
+
 function off(d){const x=new Date(today);x.setDate(x.getDate()+d);return x.toISOString().split('T')[0]}
-function days(s){const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000)}
-function fmt(s){return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
-let tasks=[
+const today=new Date();today.setHours(0,0,0,0);
+
+const DEFAULT_TASKS=[
   {id:"T001",title:"Submit VAT returns — TechCorp",project:"Tax Filings March",assignee:"Nino",due:off(0),priority:"HIGH",status:"IN_PROGRESS",description:""},
   {id:"T002",title:"Review quarterly deductions — MegaCorp",project:"Tax Filings March",assignee:"Giorgi",due:off(-2),priority:"HIGH",status:"TODO",description:""},
   {id:"T003",title:"Prepare income tax documentation — StarGroup",project:"Tax Filings March",assignee:"Ana",due:off(-3),priority:"MEDIUM",status:"DONE",description:""},
@@ -332,9 +327,36 @@ let tasks=[
   {id:"T011",title:"Corporate tax filing — Omega Group",project:"Tax Filings March",assignee:"Ana",due:off(2),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
   {id:"T012",title:"Payroll tax reconciliation — NovaTech",project:"Tax Filings March",assignee:"Davit",due:off(5),priority:"LOW",status:"TODO",description:""},
 ];
+
+// ── LOAD from localStorage (device memory) ──────────────
+let tasks=JSON.parse(localStorage.getItem('tb_tasks')||'null')||DEFAULT_TASKS;
+let TEAM=JSON.parse(localStorage.getItem('tb_team')||'null')||DEFAULT_TEAM;
+let PROJECTS=JSON.parse(localStorage.getItem('tb_projects')||'null')||DEFAULT_PROJECTS;
+let taskCounter=parseInt(localStorage.getItem('tb_counter')||'13');
+
+// ── SAVE to localStorage ─────────────────────────────────
+function saveData(){
+  localStorage.setItem('tb_tasks',JSON.stringify(tasks));
+  localStorage.setItem('tb_team',JSON.stringify(TEAM));
+  localStorage.setItem('tb_projects',JSON.stringify(PROJECTS));
+  localStorage.setItem('tb_counter',taskCounter);
+}
+
+let MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));
+function updateMC(){MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));}
+let PC=Object.fromEntries(PROJECTS.map(p=>[p.name,p.color]));
+function updatePC(){PC=Object.fromEntries(PROJECTS.map(p=>[p.name,p.color]));}
+
+let currentDetailId=null,currentFilter='all',editingTaskId=null;
+let editMode='member',editingIndex=-1;
+
+function days(s){const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000)}
+function fmt(s){return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+
 function sLabel(s){return{TODO:'To Do',IN_PROGRESS:'In Progress',BLOCKED:'Blocked',DONE:'Done'}[s]||s}
 function sClass(s){return{TODO:'s-todo',IN_PROGRESS:'s-inprog',BLOCKED:'s-blocked',DONE:'s-done'}[s]||''}
 function pClass(p){return{HIGH:'pri-high',MEDIUM:'pri-medium',LOW:'pri-low'}[p]||''}
+
 function taskCard(t){
   const d=days(t.due),done=t.status==='DONE',ov=d<0&&!done,td=d===0&&!done;
   let dTxt=fmt(t.due),dCls='';
@@ -445,7 +467,11 @@ function goProjectTasks(proj){
   document.getElementById('tasks-title').textContent=proj;
   document.getElementById('tasks-container').innerHTML=tasks.filter(t=>t.project===proj).map(taskCard).join('');
 }
-function toggleDone(id){const t=tasks.find(t=>t.id===id);if(t)t.status=t.status==='DONE'?'TODO':'DONE';renderTasks();updateStats();}
+function toggleDone(id){
+  const t=tasks.find(t=>t.id===id);
+  if(t){t.status=t.status==='DONE'?'TODO':'DONE';saveData();}
+  renderTasks();updateStats();
+}
 function openDetail(id){
   const t=tasks.find(t=>t.id===id);if(!t)return;
   currentDetailId=id;
@@ -457,20 +483,19 @@ function openDetail(id){
   document.getElementById('d-priority').textContent=t.priority;
   document.getElementById('d-status').textContent=sLabel(t.status);
   const descWrap=document.getElementById('d-desc-wrap');
-  if(t.description&&t.description.trim()){
-    document.getElementById('d-desc').textContent=t.description;
-    descWrap.style.display='block';
-  } else {
-    descWrap.style.display='none';
-  }
+  if(t.description&&t.description.trim()){document.getElementById('d-desc').textContent=t.description;descWrap.style.display='block';}
+  else{descWrap.style.display='none';}
   document.getElementById('detail-modal').classList.add('open');
 }
-function editCurrentTask(){
-  closeModal('detail-modal');
-  setTimeout(()=>openAddModal(currentDetailId),300);
+function editCurrentTask(){closeModal('detail-modal');setTimeout(()=>openAddModal(currentDetailId),300);}
+function detailAction(status){
+  const t=tasks.find(t=>t.id===currentDetailId);
+  if(t){t.status=status;saveData();closeModal('detail-modal');renderTasks();updateStats();}
 }
-function detailAction(status){const t=tasks.find(t=>t.id===currentDetailId);if(t){t.status=status;closeModal('detail-modal');renderTasks();updateStats();}}
-function deleteTask(){tasks=tasks.filter(t=>t.id!==currentDetailId);closeModal('detail-modal');renderTasks();updateStats();}
+function deleteTask(){
+  tasks=tasks.filter(t=>t.id!==currentDetailId);
+  saveData();closeModal('detail-modal');renderTasks();updateStats();
+}
 function openAddModal(taskId){
   editingTaskId=taskId;
   const t=taskId?tasks.find(x=>x.id===taskId):null;
@@ -512,7 +537,7 @@ function saveTask(){
     const id='T'+String(taskCounter++).padStart(3,'0');
     tasks.unshift({id,title,project,assignee,due,priority,status:'TODO',description});
   }
-  closeModal('add-modal');renderTasks();updateStats();
+  saveData();closeModal('add-modal');renderTasks();updateStats();
 }
 function openSettings(){renderSettingsList();renderProjectList();document.getElementById('settings-modal').classList.add('open');}
 function switchSettingsTab(tab,el){
@@ -569,6 +594,7 @@ function saveItem(){
     list[editingIndex]={name,color};
   }
   if(isMember)updateMC();else updatePC();
+  saveData();
   closeModal('item-modal');
   renderSettingsList();renderProjectList();
   renderTasks();renderTeam();updateStats();
@@ -581,6 +607,7 @@ function deleteItem(mode,index){
   if(!confirm(open>0?`"${name}" has ${open} open task(s). Remove anyway?`:`Remove "${name}"?`))return;
   list.splice(index,1);
   if(isMember)updateMC();else updatePC();
+  saveData();
   renderSettingsList();renderProjectList();
   renderTasks();renderTeam();updateStats();
 }
