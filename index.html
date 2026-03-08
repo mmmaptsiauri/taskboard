@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-<meta charset=\"UTF-8\">
-<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">
-<meta name=\"apple-mobile-web-app-capable\" content=\"yes\">
-<meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Task Board — Maia</title>
-<link href=\"https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@300;400;700&display=swap\" rel=\"stylesheet\">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#F5F1EC;--surface:#FDFAF6;--surface2:#F0EBE3;--border:#E2D9CE;--ink:#1A1714;--ink-mid:#6B6460;--ink-faint:#A39E9A;--accent:#BF3D0A;--accent-light:#FCEEE8;--green:#166534;--green-light:#DCFCE7;--amber:#92400E;--amber-light:#FEF3C7;--blue:#1E40AF;--blue-light:#DBEAFE;--red:#B91C1C;--red-light:#FEE2E2;--nav-h:72px;--radius:14px;--radius-sm:8px;--shadow-lg:0 12px 40px rgba(26,23,20,0.13)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -187,145 +187,145 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 </style>
 </head>
 <body>
-<div class=\"app\">
-  <div class=\"top-header\">
-    <div class=\"logo-area\"><h1>Task Board</h1><p id=\"todayDate\">Loading...</p></div>
-    <div class=\"header-actions\">
-      <div class=\"sync-pill\"><div class=\"sync-dot\"></div>Saved</div>
-      <button class=\"settings-btn\" onclick=\"openSettings()\">⚙️</button>
-      <button class=\"add-btn\" onclick=\"openAddModal(null)\">＋ Add Task</button>
+<div class="app">
+  <div class="top-header">
+    <div class="logo-area"><h1>Task Board</h1><p id="todayDate">Loading...</p></div>
+    <div class="header-actions">
+      <div class="sync-pill"><div class="sync-dot"></div>Saved</div>
+      <button class="settings-btn" onclick="openSettings()">⚙️</button>
+      <button class="add-btn" onclick="openAddModal(null)">＋ Add Task</button>
     </div>
   </div>
-  <div class=\"stat-strip\">
-    <div class=\"stat-tile s-accent active\" onclick=\"statFilter('all',this)\"><div class=\"stat-label\">Active</div><div class=\"stat-num\" id=\"stat-active\">0</div><div class=\"stat-sub\">tasks</div></div>
-    <div class=\"stat-tile s-amber\" onclick=\"statFilter('today',this)\"><div class=\"stat-label\">Today</div><div class=\"stat-num\" id=\"stat-today\">0</div><div class=\"stat-sub\">due</div></div>
-    <div class=\"stat-tile s-red\" onclick=\"statFilter('overdue',this)\"><div class=\"stat-label\">Overdue</div><div class=\"stat-num\" id=\"stat-overdue\">0</div><div class=\"stat-sub\">tasks</div></div>
-    <div class=\"stat-tile s-green\" onclick=\"statFilter('done',this)\"><div class=\"stat-label\">Done</div><div class=\"stat-num\" id=\"stat-done\">0</div><div class=\"stat-sub\">this week</div></div>
+  <div class="stat-strip">
+    <div class="stat-tile s-accent active" onclick="statFilter('all',this)"><div class="stat-label">Active</div><div class="stat-num" id="stat-active">0</div><div class="stat-sub">tasks</div></div>
+    <div class="stat-tile s-amber" onclick="statFilter('today',this)"><div class="stat-label">Today</div><div class="stat-num" id="stat-today">0</div><div class="stat-sub">due</div></div>
+    <div class="stat-tile s-red" onclick="statFilter('overdue',this)"><div class="stat-label">Overdue</div><div class="stat-num" id="stat-overdue">0</div><div class="stat-sub">tasks</div></div>
+    <div class="stat-tile s-green" onclick="statFilter('done',this)"><div class="stat-label">Done</div><div class="stat-num" id="stat-done">0</div><div class="stat-sub">this week</div></div>
   </div>
-  <div class=\"content-area\">
-    <div class=\"view active\" id=\"view-tasks\">
-      <div class=\"view-title\" id=\"tasks-title\">All Tasks</div>
-      <div class=\"filter-row\">
-        <div class=\"filter-chip active\" onclick=\"filterStatus('all',this)\">All</div>
-        <div class=\"filter-chip\" onclick=\"filterStatus('todo',this)\">To Do</div>
-        <div class=\"filter-chip\" onclick=\"filterStatus('inprog',this)\">In Progress</div>
-        <div class=\"filter-chip\" onclick=\"filterStatus('blocked',this)\">Blocked</div>
-        <div class=\"filter-chip\" onclick=\"filterStatus('done',this)\">Done</div>
+  <div class="content-area">
+    <div class="view active" id="view-tasks">
+      <div class="view-title" id="tasks-title">All Tasks</div>
+      <div class="filter-row">
+        <div class="filter-chip active" onclick="filterStatus('all',this)">All</div>
+        <div class="filter-chip" onclick="filterStatus('todo',this)">To Do</div>
+        <div class="filter-chip" onclick="filterStatus('inprog',this)">In Progress</div>
+        <div class="filter-chip" onclick="filterStatus('blocked',this)">Blocked</div>
+        <div class="filter-chip" onclick="filterStatus('done',this)">Done</div>
       </div>
-      <div id=\"tasks-container\"></div>
+      <div id="tasks-container"></div>
     </div>
-    <div class=\"view\" id=\"view-projects\"><div class=\"view-title\">Projects</div><div id=\"projects-container\"></div></div>
-    <div class=\"view\" id=\"view-team\"><div class=\"view-title\">Team Load</div><div class=\"team-grid\" id=\"team-container\"></div></div>
-    <div class=\"view\" id=\"view-overdue\"><div class=\"view-title\">⚠️ Needs Attention</div><div id=\"overdue-container\"></div></div>
+    <div class="view" id="view-projects"><div class="view-title">Projects</div><div id="projects-container"></div></div>
+    <div class="view" id="view-team"><div class="view-title">Team Load</div><div class="team-grid" id="team-container"></div></div>
+    <div class="view" id="view-overdue"><div class="view-title">⚠️ Needs Attention</div><div id="overdue-container"></div></div>
   </div>
-  <div class=\"bottom-nav\">
-    <div class=\"nav-item active\" onclick=\"switchView('tasks',this)\"><div class=\"nav-icon\">📋</div><div class=\"nav-label\">Tasks</div></div>
-    <div class=\"nav-item\" onclick=\"switchView('projects',this)\"><div class=\"nav-icon\">📁</div><div class=\"nav-label\">Projects</div></div>
-    <div class=\"nav-item\" onclick=\"switchView('team',this)\"><div class=\"nav-icon\">👥</div><div class=\"nav-label\">Team</div></div>
-    <div class=\"nav-item\" onclick=\"switchView('overdue',this)\"><div class=\"nav-icon\">⚠️</div><div class=\"nav-label\">Overdue</div><div class=\"nav-badge\" id=\"overdue-badge\" style=\"display:none\">0</div></div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchView('tasks',this)"><div class="nav-icon">📋</div><div class="nav-label">Tasks</div></div>
+    <div class="nav-item" onclick="switchView('projects',this)"><div class="nav-icon">📁</div><div class="nav-label">Projects</div></div>
+    <div class="nav-item" onclick="switchView('team',this)"><div class="nav-icon">👥</div><div class="nav-label">Team</div></div>
+    <div class="nav-item" onclick="switchView('overdue',this)"><div class="nav-icon">⚠️</div><div class="nav-label">Overdue</div><div class="nav-badge" id="overdue-badge" style="display:none">0</div></div>
   </div>
 </div>
 
 <!-- ADD / EDIT TASK MODAL -->
-<div class=\"modal-backdrop\" id=\"add-modal\" onclick=\"backdropClose(event,'add-modal')\">
-  <div class=\"modal-sheet\">
-    <div class=\"modal-handle\"></div>
-    <div class=\"modal-header\"><span class=\"modal-title\" id=\"add-modal-title\">New Task</span><button class=\"modal-close\" onclick=\"closeModal('add-modal')\">✕</button></div>
-    <div class=\"modal-body\">
-      <div><div class=\"field-label\">Task Title</div><input class=\"field-input\" type=\"text\" placeholder=\"e.g. Review VAT returns\" id=\"new-title\"></div>
-      <div><div class=\"field-label\">Description (optional)</div><textarea class=\"field-textarea\" placeholder=\"Add notes, details, or context...\" id=\"new-desc\"></textarea></div>
-      <div class=\"field-row\">
-        <div><div class=\"field-label\">Project</div><select class=\"field-input\" id=\"new-project\"></select></div>
-        <div><div class=\"field-label\">Due Date</div><input class=\"field-input\" type=\"date\" id=\"new-due\"></div>
+<div class="modal-backdrop" id="add-modal" onclick="backdropClose(event,'add-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title" id="add-modal-title">New Task</span><button class="modal-close" onclick="closeModal('add-modal')">✕</button></div>
+    <div class="modal-body">
+      <div><div class="field-label">Task Title</div><input class="field-input" type="text" placeholder="e.g. Review VAT returns" id="new-title"></div>
+      <div><div class="field-label">Description (optional)</div><textarea class="field-textarea" placeholder="Add notes, details, or context..." id="new-desc"></textarea></div>
+      <div class="field-row">
+        <div><div class="field-label">Project</div><select class="field-input" id="new-project"></select></div>
+        <div><div class="field-label">Due Date</div><input class="field-input" type="date" id="new-due"></div>
       </div>
-      <div><div class=\"field-label\">Assign To</div><div class=\"member-grid\" id=\"member-grid\"></div></div>
-      <div><div class=\"field-label\">Priority</div><div class=\"priority-row\"><div class=\"priority-opt p-high\" onclick=\"selPriority(this)\">🔴 High</div><div class=\"priority-opt p-medium sel\" onclick=\"selPriority(this)\">🟡 Medium</div><div class=\"priority-opt p-low\" onclick=\"selPriority(this)\">🟢 Low</div></div></div>
+      <div><div class="field-label">Assign To</div><div class="member-grid" id="member-grid"></div></div>
+      <div><div class="field-label">Priority</div><div class="priority-row"><div class="priority-opt p-high" onclick="selPriority(this)">🔴 High</div><div class="priority-opt p-medium sel" onclick="selPriority(this)">🟡 Medium</div><div class="priority-opt p-low" onclick="selPriority(this)">🟢 Low</div></div></div>
     </div>
-    <div class=\"modal-footer\"><button class=\"btn-cancel\" onclick=\"closeModal('add-modal')\">Cancel</button><button class=\"btn-save\" onclick=\"saveTask()\">Save Task →</button></div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-modal')">Cancel</button><button class="btn-save" onclick="saveTask()">Save Task →</button></div>
   </div>
 </div>
 
 <!-- DETAIL MODAL -->
-<div class=\"modal-backdrop\" id=\"detail-modal\" onclick=\"backdropClose(event,'detail-modal')\">
-  <div class=\"detail-sheet\">
-    <div class=\"modal-handle\"></div>
-    <div class=\"modal-header\"><span class=\"modal-title\" id=\"d-id\"></span><button class=\"modal-close\" onclick=\"closeModal('detail-modal')\">✕</button></div>
-    <div class=\"detail-body\">
-      <div class=\"detail-title\" id=\"d-title\"></div>
-      <div id=\"d-desc-wrap\" style=\"display:none\"><div class=\"detail-desc\" id=\"d-desc\"></div></div>
-      <div class=\"detail-row\"><span class=\"detail-key\">Project</span><span class=\"detail-val\" id=\"d-project\"></span></div>
-      <div class=\"detail-row\"><span class=\"detail-key\">Assignee</span><span class=\"detail-val\" id=\"d-assignee\"></span></div>
-      <div class=\"detail-row\"><span class=\"detail-key\">Due Date</span><span class=\"detail-val\" id=\"d-due\"></span></div>
-      <div class=\"detail-row\"><span class=\"detail-key\">Priority</span><span class=\"detail-val\" id=\"d-priority\"></span></div>
-      <div class=\"detail-row\" style=\"border:none\"><span class=\"detail-key\">Status</span><span class=\"detail-val\" id=\"d-status\"></span></div>
-      <div class=\"action-grid\">
-        <button class=\"action-btn a-accent\" onclick=\"editCurrentTask()\">✏️ Edit Task</button>
-        <button class=\"action-btn a-green\" onclick=\"detailAction('DONE')\">✅ Mark Done</button>
-        <button class=\"action-btn a-blue\" onclick=\"detailAction('IN_PROGRESS')\">🔄 In Progress</button>
-        <button class=\"action-btn a-amber\" onclick=\"detailAction('BLOCKED')\">🚫 Blocked</button>
-        <button class=\"action-btn a-red\" style=\"grid-column:span 2\" onclick=\"deleteTask()\">🗑️ Delete Task</button>
+<div class="modal-backdrop" id="detail-modal" onclick="backdropClose(event,'detail-modal')">
+  <div class="detail-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title" id="d-id"></span><button class="modal-close" onclick="closeModal('detail-modal')">✕</button></div>
+    <div class="detail-body">
+      <div class="detail-title" id="d-title"></div>
+      <div id="d-desc-wrap" style="display:none"><div class="detail-desc" id="d-desc"></div></div>
+      <div class="detail-row"><span class="detail-key">Project</span><span class="detail-val" id="d-project"></span></div>
+      <div class="detail-row"><span class="detail-key">Assignee</span><span class="detail-val" id="d-assignee"></span></div>
+      <div class="detail-row"><span class="detail-key">Due Date</span><span class="detail-val" id="d-due"></span></div>
+      <div class="detail-row"><span class="detail-key">Priority</span><span class="detail-val" id="d-priority"></span></div>
+      <div class="detail-row" style="border:none"><span class="detail-key">Status</span><span class="detail-val" id="d-status"></span></div>
+      <div class="action-grid">
+        <button class="action-btn a-accent" onclick="editCurrentTask()">✏️ Edit Task</button>
+        <button class="action-btn a-green" onclick="detailAction('DONE')">✅ Mark Done</button>
+        <button class="action-btn a-blue" onclick="detailAction('IN_PROGRESS')">🔄 In Progress</button>
+        <button class="action-btn a-amber" onclick="detailAction('BLOCKED')">🚫 Blocked</button>
+        <button class="action-btn a-red" style="grid-column:span 2" onclick="deleteTask()">🗑️ Delete Task</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- SETTINGS MODAL -->
-<div class=\"modal-backdrop\" id=\"settings-modal\" onclick=\"backdropClose(event,'settings-modal')\">
-  <div class=\"modal-sheet\">
-    <div class=\"modal-handle\"></div>
-    <div class=\"modal-header\"><span class=\"modal-title\">⚙️ Settings</span><button class=\"modal-close\" onclick=\"closeModal('settings-modal')\">✕</button></div>
-    <div class=\"modal-body\" style=\"padding-bottom:8px\">
-      <div class=\"settings-tabs\">
-        <div class=\"settings-tab active\" onclick=\"switchSettingsTab('team',this)\">👥 Team</div>
-        <div class=\"settings-tab\" onclick=\"switchSettingsTab('projects',this)\">📁 Projects</div>
+<div class="modal-backdrop" id="settings-modal" onclick="backdropClose(event,'settings-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title">⚙️ Settings</span><button class="modal-close" onclick="closeModal('settings-modal')">✕</button></div>
+    <div class="modal-body" style="padding-bottom:8px">
+      <div class="settings-tabs">
+        <div class="settings-tab active" onclick="switchSettingsTab('team',this)">👥 Team</div>
+        <div class="settings-tab" onclick="switchSettingsTab('projects',this)">📁 Projects</div>
       </div>
-      <div class=\"settings-panel active\" id=\"settings-panel-team\">
-        <div id=\"settings-member-list\"></div>
-        <button class=\"add-member-btn\" onclick=\"openItemModal('member',-1)\">＋ Add New Member</button>
+      <div class="settings-panel active" id="settings-panel-team">
+        <div id="settings-member-list"></div>
+        <button class="add-member-btn" onclick="openItemModal('member',-1)">＋ Add New Member</button>
       </div>
-      <div class=\"settings-panel\" id=\"settings-panel-projects\">
-        <div id=\"settings-project-list\"></div>
-        <button class=\"add-member-btn\" onclick=\"openItemModal('project',-1)\">＋ Add New Project</button>
+      <div class="settings-panel" id="settings-panel-projects">
+        <div id="settings-project-list"></div>
+        <button class="add-member-btn" onclick="openItemModal('project',-1)">＋ Add New Project</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- EDIT/ADD ITEM MODAL -->
-<div class=\"modal-backdrop\" id=\"item-modal\" onclick=\"backdropClose(event,'item-modal')\" style=\"z-index:200\">
-  <div class=\"modal-sheet\" style=\"z-index:201\">
-    <div class=\"modal-handle\"></div>
-    <div class=\"modal-header\"><span class=\"modal-title\" id=\"item-modal-title\">Add</span><button class=\"modal-close\" onclick=\"closeModal('item-modal')\">✕</button></div>
-    <div class=\"modal-body\">
-      <div><div class=\"field-label\" id=\"item-name-label\">Name</div><input class=\"field-input\" type=\"text\" id=\"item-name-input\" maxlength=\"40\"></div>
-      <div><div class=\"field-label\">Color</div><div class=\"color-grid\" id=\"color-grid\"></div></div>
+<div class="modal-backdrop" id="item-modal" onclick="backdropClose(event,'item-modal')" style="z-index:200">
+  <div class="modal-sheet" style="z-index:201">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title" id="item-modal-title">Add</span><button class="modal-close" onclick="closeModal('item-modal')">✕</button></div>
+    <div class="modal-body">
+      <div><div class="field-label" id="item-name-label">Name</div><input class="field-input" type="text" id="item-name-input" maxlength="40"></div>
+      <div><div class="field-label">Color</div><div class="color-grid" id="color-grid"></div></div>
     </div>
-    <div class=\"modal-footer\"><button class=\"btn-cancel\" onclick=\"closeModal('item-modal')\">Cancel</button><button class=\"btn-save\" onclick=\"saveItem()\">Save →</button></div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('item-modal')">Cancel</button><button class="btn-save" onclick="saveItem()">Save →</button></div>
   </div>
 </div>
 
 <script>
-const COLOR_PALETTE=[\"#C2410C\",\"#1D4ED8\",\"#15803D\",\"#7C3AED\",\"#B45309\",\"#0891B2\",\"#DB2777\",\"#059669\",\"#DC2626\",\"#D97706\",\"#0284C7\",\"#6D28D9\",\"#0F766E\",\"#BE185D\",\"#EA580C\",\"#4F46E5\"];
+const COLOR_PALETTE=["#C2410C","#1D4ED8","#15803D","#7C3AED","#B45309","#0891B2","#DB2777","#059669","#DC2626","#D97706","#0284C7","#6D28D9","#0F766E","#BE185D","#EA580C","#4F46E5"];
 
-const DEFAULT_TEAM=[{name:\"Nino\",color:\"#C2410C\"},{name:\"Giorgi\",color:\"#1D4ED8\"},{name:\"Ana\",color:\"#15803D\"},{name:\"Luka\",color:\"#7C3AED\"},{name:\"Mariam\",color:\"#B45309\"},{name:\"Davit\",color:\"#0891B2\"},{name:\"Tamar\",color:\"#DB2777\"},{name:\"Irakli\",color:\"#059669\"}];
-const DEFAULT_PROJECTS=[{name:\"Tax Filings March\",color:\"#1D4ED8\"},{name:\"Audit Q1 2025\",color:\"#15803D\"},{name:\"Accounter MVP\",color:\"#B45309\"}];
+const DEFAULT_TEAM=[{name:"Nino",color:"#C2410C"},{name:"Giorgi",color:"#1D4ED8"},{name:"Ana",color:"#15803D"},{name:"Luka",color:"#7C3AED"},{name:"Mariam",color:"#B45309"},{name:"Davit",color:"#0891B2"},{name:"Tamar",color:"#DB2777"},{name:"Irakli",color:"#059669"}];
+const DEFAULT_PROJECTS=[{name:"Tax Filings March",color:"#1D4ED8"},{name:"Audit Q1 2025",color:"#15803D"},{name:"Accounter MVP",color:"#B45309"}];
 
 function off(d){const x=new Date(today);x.setDate(x.getDate()+d);return x.toISOString().split('T')[0]}
 const today=new Date();today.setHours(0,0,0,0);
 
 const DEFAULT_TASKS=[
-  {id:\"T001\",title:\"Submit VAT returns — TechCorp\",project:\"Tax Filings March\",assignee:\"Nino\",due:off(0),priority:\"HIGH\",status:\"IN_PROGRESS\",description:\"\"},
-  {id:\"T002\",title:\"Review quarterly deductions — MegaCorp\",project:\"Tax Filings March\",assignee:\"Giorgi\",due:off(-2),priority:\"HIGH\",status:\"TODO\",description:\"\"},
-  {id:\"T003\",title:\"Prepare income tax documentation — StarGroup\",project:\"Tax Filings March\",assignee:\"Ana\",due:off(-3),priority:\"MEDIUM\",status:\"DONE\",description:\"\"},
-  {id:\"T004\",title:\"Client data reconciliation — BioLab\",project:\"Tax Filings March\",assignee:\"Mariam\",due:off(0),priority:\"HIGH\",status:\"BLOCKED\",description:\"\"},
-  {id:\"T005\",title:\"Internal controls assessment — GlobalTrade\",project:\"Audit Q1 2025\",assignee:\"Luka\",due:off(3),priority:\"HIGH\",status:\"IN_PROGRESS\",description:\"\"},
-  {id:\"T006\",title:\"Fixed assets verification — Sunrise Holdings\",project:\"Audit Q1 2025\",assignee:\"Davit\",due:off(6),priority:\"MEDIUM\",status:\"TODO\",description:\"\"},
-  {id:\"T007\",title:\"Bank statement reconciliation — Orion JSC\",project:\"Audit Q1 2025\",assignee:\"Tamar\",due:off(-3),priority:\"MEDIUM\",status:\"IN_PROGRESS\",description:\"\"},
-  {id:\"T008\",title:\"RAG system testing — double taxation agreements\",project:\"Accounter MVP\",assignee:\"Nino\",due:off(8),priority:\"HIGH\",status:\"TODO\",description:\"\"},
-  {id:\"T009\",title:\"Power Automate flow — document collection\",project:\"Accounter MVP\",assignee:\"Irakli\",due:off(11),priority:\"MEDIUM\",status:\"IN_PROGRESS\",description:\"\"},
-  {id:\"T010\",title:\"Prepare audit report draft — GlobalTrade\",project:\"Audit Q1 2025\",assignee:\"Giorgi\",due:off(4),priority:\"HIGH\",status:\"TODO\",description:\"\"},
-  {id:\"T011\",title:\"Corporate tax filing — Omega Group\",project:\"Tax Filings March\",assignee:\"Ana\",due:off(2),priority:\"MEDIUM\",status:\"IN_PROGRESS\",description:\"\"},
-  {id:\"T012\",title:\"Payroll tax reconciliation — NovaTech\",project:\"Tax Filings March\",assignee:\"Davit\",due:off(5),priority:\"LOW\",status:\"TODO\",description:\"\"},
+  {id:"T001",title:"Submit VAT returns — TechCorp",project:"Tax Filings March",assignee:"Nino",due:off(0),priority:"HIGH",status:"IN_PROGRESS",description:""},
+  {id:"T002",title:"Review quarterly deductions — MegaCorp",project:"Tax Filings March",assignee:"Giorgi",due:off(-2),priority:"HIGH",status:"TODO",description:""},
+  {id:"T003",title:"Prepare income tax documentation — StarGroup",project:"Tax Filings March",assignee:"Ana",due:off(-3),priority:"MEDIUM",status:"DONE",description:""},
+  {id:"T004",title:"Client data reconciliation — BioLab",project:"Tax Filings March",assignee:"Mariam",due:off(0),priority:"HIGH",status:"BLOCKED",description:""},
+  {id:"T005",title:"Internal controls assessment — GlobalTrade",project:"Audit Q1 2025",assignee:"Luka",due:off(3),priority:"HIGH",status:"IN_PROGRESS",description:""},
+  {id:"T006",title:"Fixed assets verification — Sunrise Holdings",project:"Audit Q1 2025",assignee:"Davit",due:off(6),priority:"MEDIUM",status:"TODO",description:""},
+  {id:"T007",title:"Bank statement reconciliation — Orion JSC",project:"Audit Q1 2025",assignee:"Tamar",due:off(-3),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
+  {id:"T008",title:"RAG system testing — double taxation agreements",project:"Accounter MVP",assignee:"Nino",due:off(8),priority:"HIGH",status:"TODO",description:""},
+  {id:"T009",title:"Power Automate flow — document collection",project:"Accounter MVP",assignee:"Irakli",due:off(11),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
+  {id:"T010",title:"Prepare audit report draft — GlobalTrade",project:"Audit Q1 2025",assignee:"Giorgi",due:off(4),priority:"HIGH",status:"TODO",description:""},
+  {id:"T011",title:"Corporate tax filing — Omega Group",project:"Tax Filings March",assignee:"Ana",due:off(2),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
+  {id:"T012",title:"Payroll tax reconciliation — NovaTech",project:"Tax Filings March",assignee:"Davit",due:off(5),priority:"LOW",status:"TODO",description:""},
 ];
 
 // ── LOAD from localStorage (device memory) ──────────────
@@ -366,21 +366,21 @@ function taskCard(t){
   else if(d===1)dTxt='Tomorrow';
   const c=MC[t.assignee]||'#888';
   const hasDesc=t.description&&t.description.trim();
-  return`<div class=\"task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}\" onclick=\"openDetail('${t.id}')\">
-    <div class=\"task-top\">
-      <div class=\"task-checkbox\" onclick=\"event.stopPropagation();toggleDone('${t.id}')\">${done?'✓':''}</div>
-      <div class=\"task-body\">
-        <div class=\"task-title\">${t.title}</div>
-        <div class=\"task-meta\"><span class=\"task-id\">${t.id}</span><span class=\"assignee-chip\"><span class=\"a-dot\" style=\"background:${c}\">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style=\"font-size:11px;color:var(--ink-faint)\">📝</span>':''}</div>
+  return`<div class="task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}" onclick="openDetail('${t.id}')">
+    <div class="task-top">
+      <div class="task-checkbox" onclick="event.stopPropagation();toggleDone('${t.id}')">${done?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}</div>
       </div>
     </div>
-    <div class=\"task-bottom\"><span class=\"status-pill ${sClass(t.status)}\">${sLabel(t.status)}</span><span class=\"due-label ${dCls}\">${dTxt}</span></div>
+    <div class="task-bottom"><span class="status-pill ${sClass(t.status)}">${sLabel(t.status)}</span><span class="due-label ${dCls}">${dTxt}</span></div>
   </div>`;
 }
 function renderTaskList(list){
   return[...new Set(list.map(t=>t.project))].map(p=>{
     const pt=list.filter(t=>t.project===p),c=PC[p]||'#888';
-    return`<div class=\"project-group\"><div class=\"project-banner\"><div class=\"project-stripe\" style=\"background:${c}\"></div><span class=\"project-name\">${p}</span><span class=\"project-badge\">${pt.length}</span></div>${pt.map(taskCard).join('')}</div>`;
+    return`<div class="project-group"><div class="project-banner"><div class="project-stripe" style="background:${c}"></div><span class="project-name">${p}</span><span class="project-badge">${pt.length}</span></div>${pt.map(taskCard).join('')}</div>`;
   }).join('');
 }
 function renderTasks(){
@@ -389,37 +389,37 @@ function renderTasks(){
   else if(currentFilter==='inprog')list=tasks.filter(t=>t.status==='IN_PROGRESS');
   else if(currentFilter==='blocked')list=tasks.filter(t=>t.status==='BLOCKED');
   else if(currentFilter==='done')list=tasks.filter(t=>t.status==='DONE');
-  document.getElementById('tasks-container').innerHTML=list.length?renderTaskList(list):'<div style=\"text-align:center;padding:48px;color:var(--ink-faint);font-size:15px\">Nothing here 🎉</div>';
+  document.getElementById('tasks-container').innerHTML=list.length?renderTaskList(list):'<div style="text-align:center;padding:48px;color:var(--ink-faint);font-size:15px">Nothing here 🎉</div>';
   updateStats();
 }
 function renderProjects(){
   document.getElementById('projects-container').innerHTML=PROJECTS.map(proj=>{
     const pt=tasks.filter(t=>t.project===proj.name),done=pt.filter(t=>t.status==='DONE').length,pct=pt.length?Math.round(done/pt.length*100):0;
     const members=[...new Set(pt.map(t=>t.assignee))];
-    return`<div class=\"project-card\" onclick=\"goProjectTasks('${proj.name}')\">
-      <div style=\"position:absolute;left:0;top:0;bottom:0;width:5px;background:${proj.color}\"></div>
-      <div class=\"proj-top\"><span class=\"proj-name\">${proj.name}</span><span class=\"proj-count\">${pt.length} tasks</span></div>
-      <div class=\"proj-progress\"><div class=\"proj-progress-fill\" style=\"width:${pct}%;background:${proj.color}\"></div></div>
-      <div style=\"font-size:12px;color:var(--ink-faint);margin-bottom:10px;font-weight:700\">${pct}% complete · ${done}/${pt.length} done</div>
-      <div class=\"proj-member-row\">${members.map(m=>`<div class=\"proj-member-chip\"><div class=\"proj-member-dot\" style=\"background:${MC[m]||'#888'}\">${m[0]}</div>${m}</div>`).join('')}</div>
+    return`<div class="project-card" onclick="goProjectTasks('${proj.name}')">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:${proj.color}"></div>
+      <div class="proj-top"><span class="proj-name">${proj.name}</span><span class="proj-count">${pt.length} tasks</span></div>
+      <div class="proj-progress"><div class="proj-progress-fill" style="width:${pct}%;background:${proj.color}"></div></div>
+      <div style="font-size:12px;color:var(--ink-faint);margin-bottom:10px;font-weight:700">${pct}% complete · ${done}/${pt.length} done</div>
+      <div class="proj-member-row">${members.map(m=>`<div class="proj-member-chip"><div class="proj-member-dot" style="background:${MC[m]||'#888'}">${m[0]}</div>${m}</div>`).join('')}</div>
     </div>`;
   }).join('');
 }
 function renderTeam(){
   document.getElementById('team-container').innerHTML=TEAM.map((m,i)=>{
     const mt=tasks.filter(t=>t.assignee===m.name),open=mt.filter(t=>t.status!=='DONE').length,doneC=mt.filter(t=>t.status==='DONE').length,todC=mt.filter(t=>days(t.due)===0&&t.status!=='DONE').length,ovC=mt.filter(t=>days(t.due)<0&&t.status!=='DONE').length;
-    return`<div class=\"team-card\" style=\"border-top:3px solid ${m.color};cursor:pointer\" onclick=\"goMemberTasks(${i})\">
-      <div class=\"team-avatar\" style=\"background:${m.color}\">${m.name[0]}</div>
-      <div class=\"team-name\">${m.name}</div>
-      <div class=\"team-stats\"><span class=\"team-stat-pill\">${open} open</span>${todC?`<span class=\"team-stat-pill amber\">${todC} today</span>`:''} ${ovC?`<span class=\"team-stat-pill red\">${ovC} overdue</span>`:''} ${doneC?`<span class=\"team-stat-pill green\">${doneC} done</span>`:''}</div>
-      <div class=\"workload-bar-wrap\"><div class=\"workload-bar\" style=\"width:${Math.min(100,open*20)}%;background:${m.color}\"></div></div>
-      <div style=\"font-size:11px;color:var(--ink-faint);margin-top:6px;font-weight:700\">${open>=4?'🔴 Heavy':open>=2?'🟡 Normal':'🟢 Light'}</div>
+    return`<div class="team-card" style="border-top:3px solid ${m.color};cursor:pointer" onclick="goMemberTasks(${i})">
+      <div class="team-avatar" style="background:${m.color}">${m.name[0]}</div>
+      <div class="team-name">${m.name}</div>
+      <div class="team-stats"><span class="team-stat-pill">${open} open</span>${todC?`<span class="team-stat-pill amber">${todC} today</span>`:''} ${ovC?`<span class="team-stat-pill red">${ovC} overdue</span>`:''} ${doneC?`<span class="team-stat-pill green">${doneC} done</span>`:''}</div>
+      <div class="workload-bar-wrap"><div class="workload-bar" style="width:${Math.min(100,open*20)}%;background:${m.color}"></div></div>
+      <div style="font-size:11px;color:var(--ink-faint);margin-top:6px;font-weight:700">${open>=4?'🔴 Heavy':open>=2?'🟡 Normal':'🟢 Light'}</div>
     </div>`;
   }).join('');
 }
 function renderOverdue(){
   const ov=tasks.filter(t=>days(t.due)<0&&t.status!=='DONE').sort((a,b)=>a.due.localeCompare(b.due));
-  document.getElementById('overdue-container').innerHTML=ov.length?ov.map(taskCard).join(''):'<div style=\"text-align:center;padding:60px 20px;color:var(--ink-faint)\"><div style=\"font-size:44px;margin-bottom:12px\">🎉</div><div style=\"font-size:16px;font-weight:700\">All caught up!</div></div>';
+  document.getElementById('overdue-container').innerHTML=ov.length?ov.map(taskCard).join(''):'<div style="text-align:center;padding:60px 20px;color:var(--ink-faint)"><div style="font-size:44px;margin-bottom:12px">🎉</div><div style="font-size:16px;font-weight:700">All caught up!</div></div>';
 }
 function updateStats(){
   const active=tasks.filter(t=>t.status!=='DONE').length,todC=tasks.filter(t=>days(t.due)===0&&t.status!=='DONE').length,ovC=tasks.filter(t=>days(t.due)<0&&t.status!=='DONE').length,doneC=tasks.filter(t=>t.status==='DONE').length;
@@ -509,8 +509,8 @@ function openAddModal(taskId){
   editingTaskId=taskId;
   const t=taskId?tasks.find(x=>x.id===taskId):null;
   document.getElementById('add-modal-title').textContent=t?'Edit Task':'New Task';
-  document.getElementById('new-project').innerHTML=PROJECTS.map(p=>`<option value=\"${p.name}\">${p.name}</option>`).join('');
-  document.getElementById('member-grid').innerHTML=TEAM.map((m,i)=>`<div class=\"member-opt ${(!t&&i===0)||(t&&t.assignee===m.name)?'sel':''}\" onclick=\"selMember(this)\"><div class=\"m-avatar\" style=\"background:${m.color}\">${m.name[0]}</div><div class=\"m-name\">${m.name}</div></div>`).join('');
+  document.getElementById('new-project').innerHTML=PROJECTS.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+  document.getElementById('member-grid').innerHTML=TEAM.map((m,i)=>`<div class="member-opt ${(!t&&i===0)||(t&&t.assignee===m.name)?'sel':''}" onclick="selMember(this)"><div class="m-avatar" style="background:${m.color}">${m.name[0]}</div><div class="m-name">${m.name}</div></div>`).join('');
   if(t){
     document.getElementById('new-title').value=t.title;
     document.getElementById('new-desc').value=t.description||'';
@@ -558,18 +558,18 @@ function switchSettingsTab(tab,el){
 function renderSettingsList(){
   document.getElementById('settings-member-list').innerHTML=TEAM.map((m,i)=>{
     const open=tasks.filter(t=>t.assignee===m.name&&t.status!=='DONE').length,total=tasks.filter(t=>t.assignee===m.name).length;
-    return`<div class=\"settings-member-row\">
-      <div class=\"settings-member-info\"><div class=\"settings-avatar\" style=\"background:${m.color}\">${m.name[0]}</div><div><div class=\"settings-member-name-text\">${m.name}</div><div class=\"settings-task-count\">${open} open · ${total} total</div></div></div>
-      <div class=\"settings-actions\"><button class=\"icon-btn\" onclick=\"openItemModal('member',${i})\">✏️</button><button class=\"icon-btn\" onclick=\"deleteItem('member',${i})\">🗑️</button></div>
+    return`<div class="settings-member-row">
+      <div class="settings-member-info"><div class="settings-avatar" style="background:${m.color}">${m.name[0]}</div><div><div class="settings-member-name-text">${m.name}</div><div class="settings-task-count">${open} open · ${total} total</div></div></div>
+      <div class="settings-actions"><button class="icon-btn" onclick="openItemModal('member',${i})">✏️</button><button class="icon-btn" onclick="deleteItem('member',${i})">🗑️</button></div>
     </div>`;
   }).join('');
 }
 function renderProjectList(){
   document.getElementById('settings-project-list').innerHTML=PROJECTS.map((p,i)=>{
     const total=tasks.filter(t=>t.project===p.name).length,open=tasks.filter(t=>t.project===p.name&&t.status!=='DONE').length;
-    return`<div class=\"settings-member-row\">
-      <div class=\"settings-member-info\"><div class=\"settings-square\" style=\"background:${p.color}\">📁</div><div><div class=\"settings-member-name-text\">${p.name}</div><div class=\"settings-task-count\">${open} open · ${total} total tasks</div></div></div>
-      <div class=\"settings-actions\"><button class=\"icon-btn\" onclick=\"openItemModal('project',${i})\">✏️</button><button class=\"icon-btn\" onclick=\"deleteItem('project',${i})\">🗑️</button></div>
+    return`<div class="settings-member-row">
+      <div class="settings-member-info"><div class="settings-square" style="background:${p.color}">📁</div><div><div class="settings-member-name-text">${p.name}</div><div class="settings-task-count">${open} open · ${total} total tasks</div></div></div>
+      <div class="settings-actions"><button class="icon-btn" onclick="openItemModal('project',${i})">✏️</button><button class="icon-btn" onclick="deleteItem('project',${i})">🗑️</button></div>
     </div>`;
   }).join('');
 }
@@ -582,7 +582,7 @@ function openItemModal(mode,index){
   document.getElementById('item-name-label').textContent=isMember?'Full Name':'Project Name';
   document.getElementById('item-name-input').placeholder=isMember?'e.g. Nino':'e.g. Tax Filings April';
   const selColor=existing?existing.color:COLOR_PALETTE[0];
-  document.getElementById('color-grid').innerHTML=COLOR_PALETTE.map(c=>`<div class=\"color-swatch ${c===selColor?'sel':''}\" style=\"background:${c}\" onclick=\"selectSwatch(this)\" data-color=\"${c}\"></div>`).join('');
+  document.getElementById('color-grid').innerHTML=COLOR_PALETTE.map(c=>`<div class="color-swatch ${c===selColor?'sel':''}" style="background:${c}" onclick="selectSwatch(this)" data-color="${c}"></div>`).join('');
   document.getElementById('item-name-input').value=existing?existing.name:'';
   document.getElementById('item-modal').classList.add('open');
   setTimeout(()=>document.getElementById('item-name-input').focus(),350);
@@ -613,7 +613,7 @@ function deleteItem(mode,index){
   const list=isMember?TEAM:PROJECTS;
   const name=list[index].name;
   const open=tasks.filter(t=>(isMember?t.assignee:t.project)===name&&t.status!=='DONE').length;
-  if(!confirm(open>0?`\"${name}\" has ${open} open task(s). Remove anyway?`:`Remove \"${name}\"?`))return;
+  if(!confirm(open>0?`"${name}" has ${open} open task(s). Remove anyway?`:`Remove "${name}"?`))return;
   list.splice(index,1);
   if(isMember)updateMC();else updatePC();
   saveData();
