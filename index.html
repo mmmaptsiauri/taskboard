@@ -126,6 +126,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-faint);margin-bottom:8px}
 .field-input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Lato',sans-serif;font-size:16px;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none}
 .field-input:focus{border-color:var(--accent)}
+.field-textarea{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none;resize:none;min-height:90px;line-height:1.5}
+.field-textarea:focus{border-color:var(--accent)}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .member-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .member-opt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
@@ -147,6 +149,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .btn-save:active{background:#8B2D07;transform:scale(0.98)}
 .detail-body{padding:20px 22px}
 .detail-title{font-family:'Playfair Display',serif;font-size:19px;margin-bottom:16px;line-height:1.3}
+.detail-desc{font-size:14px;color:var(--ink-mid);line-height:1.6;background:var(--surface2);border-radius:10px;padding:12px 14px;margin-bottom:16px;white-space:pre-wrap}
 .detail-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
 .detail-key{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-faint)}
 .detail-val{font-size:14px;font-weight:700}
@@ -157,6 +160,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .action-btn.a-blue{background:var(--blue-light);border-color:var(--blue);color:var(--blue)}
 .action-btn.a-red{background:var(--red-light);border-color:var(--red);color:var(--red)}
 .action-btn.a-amber{background:var(--amber-light);border-color:var(--amber);color:var(--amber)}
+.action-btn.a-accent{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
 .settings-tabs{display:flex;border-bottom:1px solid var(--border);margin:-20px -22px 0;padding:0 22px}
 .settings-tab{flex:1;padding:14px 8px;text-align:center;font-size:13px;font-weight:700;color:var(--ink-faint);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .settings-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -189,7 +193,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
     <div class="header-actions">
       <div class="sync-pill"><div class="sync-dot"></div>Live</div>
       <button class="settings-btn" onclick="openSettings()">⚙️</button>
-      <button class="add-btn" onclick="openAddModal()">＋ Add Task</button>
+      <button class="add-btn" onclick="openAddModal(null)">＋ Add Task</button>
     </div>
   </div>
   <div class="stat-strip">
@@ -222,19 +226,20 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
   </div>
 </div>
 
-<!-- ADD MODAL -->
+<!-- ADD / EDIT TASK MODAL -->
 <div class="modal-backdrop" id="add-modal" onclick="backdropClose(event,'add-modal')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-header"><span class="modal-title">New Task</span><button class="modal-close" onclick="closeModal('add-modal')">✕</button></div>
+    <div class="modal-header"><span class="modal-title" id="add-modal-title">New Task</span><button class="modal-close" onclick="closeModal('add-modal')">✕</button></div>
     <div class="modal-body">
       <div><div class="field-label">Task Title</div><input class="field-input" type="text" placeholder="e.g. Review VAT returns" id="new-title"></div>
+      <div><div class="field-label">Description (optional)</div><textarea class="field-textarea" placeholder="Add notes, details, or context..." id="new-desc"></textarea></div>
       <div class="field-row">
         <div><div class="field-label">Project</div><select class="field-input" id="new-project"></select></div>
         <div><div class="field-label">Due Date</div><input class="field-input" type="date" id="new-due"></div>
       </div>
       <div><div class="field-label">Assign To</div><div class="member-grid" id="member-grid"></div></div>
-      <div><div class="field-label">Priority</div><div class="priority-row"><div class="priority-opt p-high" onclick="selPriority(this)">🔴 High</div><div class="priority-opt p-medium sel" onclick="selPriority(this)">🟡 Medium</div><div class="priority-opt p-low" onclick="selPriority(this)">🟢 Low</div></div></div>
+      <div><div class="field-label">Priority</div><div class="priority-row" id="priority-row"><div class="priority-opt p-high" onclick="selPriority(this)">🔴 High</div><div class="priority-opt p-medium sel" onclick="selPriority(this)">🟡 Medium</div><div class="priority-opt p-low" onclick="selPriority(this)">🟢 Low</div></div></div>
     </div>
     <div class="modal-footer"><button class="btn-cancel" onclick="closeModal('add-modal')">Cancel</button><button class="btn-save" onclick="saveTask()">Save Task →</button></div>
   </div>
@@ -247,16 +252,18 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
     <div class="modal-header"><span class="modal-title" id="d-id"></span><button class="modal-close" onclick="closeModal('detail-modal')">✕</button></div>
     <div class="detail-body">
       <div class="detail-title" id="d-title"></div>
+      <div id="d-desc-wrap" style="display:none"><div class="detail-desc" id="d-desc"></div></div>
       <div class="detail-row"><span class="detail-key">Project</span><span class="detail-val" id="d-project"></span></div>
       <div class="detail-row"><span class="detail-key">Assignee</span><span class="detail-val" id="d-assignee"></span></div>
       <div class="detail-row"><span class="detail-key">Due Date</span><span class="detail-val" id="d-due"></span></div>
       <div class="detail-row"><span class="detail-key">Priority</span><span class="detail-val" id="d-priority"></span></div>
       <div class="detail-row" style="border:none"><span class="detail-key">Status</span><span class="detail-val" id="d-status"></span></div>
       <div class="action-grid">
+        <button class="action-btn a-accent" onclick="editCurrentTask()">✏️ Edit Task</button>
         <button class="action-btn a-green" onclick="detailAction('DONE')">✅ Mark Done</button>
         <button class="action-btn a-blue" onclick="detailAction('IN_PROGRESS')">🔄 In Progress</button>
         <button class="action-btn a-amber" onclick="detailAction('BLOCKED')">🚫 Blocked</button>
-        <button class="action-btn a-red" onclick="deleteTask()">🗑️ Delete</button>
+        <button class="action-btn a-red" style="grid-column:span 2" onclick="deleteTask()">🗑️ Delete Task</button>
       </div>
     </div>
   </div>
@@ -306,24 +313,24 @@ let PROJECTS=[{name:"Tax Filings March",color:"#1D4ED8"},{name:"Audit Q1 2025",c
 let PC=Object.fromEntries(PROJECTS.map(p=>[p.name,p.color]));
 function updatePC(){PC=Object.fromEntries(PROJECTS.map(p=>[p.name,p.color]));}
 const today=new Date();today.setHours(0,0,0,0);
-let taskCounter=13,currentDetailId=null,currentFilter='all';
+let taskCounter=13,currentDetailId=null,currentFilter='all',editingTaskId=null;
 let editMode='member',editingIndex=-1;
 function off(d){const x=new Date(today);x.setDate(x.getDate()+d);return x.toISOString().split('T')[0]}
 function days(s){const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000)}
 function fmt(s){return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
 let tasks=[
-  {id:"T001",title:"Submit VAT returns — TechCorp",project:"Tax Filings March",assignee:"Nino",due:off(0),priority:"HIGH",status:"IN_PROGRESS"},
-  {id:"T002",title:"Review quarterly deductions — MegaCorp",project:"Tax Filings March",assignee:"Giorgi",due:off(-2),priority:"HIGH",status:"TODO"},
-  {id:"T003",title:"Prepare income tax documentation — StarGroup",project:"Tax Filings March",assignee:"Ana",due:off(-3),priority:"MEDIUM",status:"DONE"},
-  {id:"T004",title:"Client data reconciliation — BioLab",project:"Tax Filings March",assignee:"Mariam",due:off(0),priority:"HIGH",status:"BLOCKED"},
-  {id:"T005",title:"Internal controls assessment — GlobalTrade",project:"Audit Q1 2025",assignee:"Luka",due:off(3),priority:"HIGH",status:"IN_PROGRESS"},
-  {id:"T006",title:"Fixed assets verification — Sunrise Holdings",project:"Audit Q1 2025",assignee:"Davit",due:off(6),priority:"MEDIUM",status:"TODO"},
-  {id:"T007",title:"Bank statement reconciliation — Orion JSC",project:"Audit Q1 2025",assignee:"Tamar",due:off(-3),priority:"MEDIUM",status:"IN_PROGRESS"},
-  {id:"T008",title:"RAG system testing — double taxation agreements",project:"Accounter MVP",assignee:"Nino",due:off(8),priority:"HIGH",status:"TODO"},
-  {id:"T009",title:"Power Automate flow — document collection",project:"Accounter MVP",assignee:"Irakli",due:off(11),priority:"MEDIUM",status:"IN_PROGRESS"},
-  {id:"T010",title:"Prepare audit report draft — GlobalTrade",project:"Audit Q1 2025",assignee:"Giorgi",due:off(4),priority:"HIGH",status:"TODO"},
-  {id:"T011",title:"Corporate tax filing — Omega Group",project:"Tax Filings March",assignee:"Ana",due:off(2),priority:"MEDIUM",status:"IN_PROGRESS"},
-  {id:"T012",title:"Payroll tax reconciliation — NovaTech",project:"Tax Filings March",assignee:"Davit",due:off(5),priority:"LOW",status:"TODO"},
+  {id:"T001",title:"Submit VAT returns — TechCorp",project:"Tax Filings March",assignee:"Nino",due:off(0),priority:"HIGH",status:"IN_PROGRESS",description:""},
+  {id:"T002",title:"Review quarterly deductions — MegaCorp",project:"Tax Filings March",assignee:"Giorgi",due:off(-2),priority:"HIGH",status:"TODO",description:""},
+  {id:"T003",title:"Prepare income tax documentation — StarGroup",project:"Tax Filings March",assignee:"Ana",due:off(-3),priority:"MEDIUM",status:"DONE",description:""},
+  {id:"T004",title:"Client data reconciliation — BioLab",project:"Tax Filings March",assignee:"Mariam",due:off(0),priority:"HIGH",status:"BLOCKED",description:""},
+  {id:"T005",title:"Internal controls assessment — GlobalTrade",project:"Audit Q1 2025",assignee:"Luka",due:off(3),priority:"HIGH",status:"IN_PROGRESS",description:""},
+  {id:"T006",title:"Fixed assets verification — Sunrise Holdings",project:"Audit Q1 2025",assignee:"Davit",due:off(6),priority:"MEDIUM",status:"TODO",description:""},
+  {id:"T007",title:"Bank statement reconciliation — Orion JSC",project:"Audit Q1 2025",assignee:"Tamar",due:off(-3),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
+  {id:"T008",title:"RAG system testing — double taxation agreements",project:"Accounter MVP",assignee:"Nino",due:off(8),priority:"HIGH",status:"TODO",description:""},
+  {id:"T009",title:"Power Automate flow — document collection",project:"Accounter MVP",assignee:"Irakli",due:off(11),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
+  {id:"T010",title:"Prepare audit report draft — GlobalTrade",project:"Audit Q1 2025",assignee:"Giorgi",due:off(4),priority:"HIGH",status:"TODO",description:""},
+  {id:"T011",title:"Corporate tax filing — Omega Group",project:"Tax Filings March",assignee:"Ana",due:off(2),priority:"MEDIUM",status:"IN_PROGRESS",description:""},
+  {id:"T012",title:"Payroll tax reconciliation — NovaTech",project:"Tax Filings March",assignee:"Davit",due:off(5),priority:"LOW",status:"TODO",description:""},
 ];
 function sLabel(s){return{TODO:'To Do',IN_PROGRESS:'In Progress',BLOCKED:'Blocked',DONE:'Done'}[s]||s}
 function sClass(s){return{TODO:'s-todo',IN_PROGRESS:'s-inprog',BLOCKED:'s-blocked',DONE:'s-done'}[s]||''}
@@ -336,12 +343,13 @@ function taskCard(t){
   else if(d===0){dTxt='Due Today';dCls='today';}
   else if(d===1)dTxt='Tomorrow';
   const c=MC[t.assignee]||'#888';
+  const hasDesc=t.description&&t.description.trim();
   return`<div class="task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}" onclick="openDetail('${t.id}')">
     <div class="task-top">
       <div class="task-checkbox" onclick="event.stopPropagation();toggleDone('${t.id}')">${done?'✓':''}</div>
       <div class="task-body">
         <div class="task-title">${t.title}</div>
-        <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span></div>
+        <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}</div>
       </div>
     </div>
     <div class="task-bottom"><span class="status-pill ${sClass(t.status)}">${sLabel(t.status)}</span><span class="due-label ${dCls}">${dTxt}</span></div>
@@ -448,16 +456,42 @@ function openDetail(id){
   document.getElementById('d-due').textContent=fmt(t.due);
   document.getElementById('d-priority').textContent=t.priority;
   document.getElementById('d-status').textContent=sLabel(t.status);
+  const descWrap=document.getElementById('d-desc-wrap');
+  if(t.description&&t.description.trim()){
+    document.getElementById('d-desc').textContent=t.description;
+    descWrap.style.display='block';
+  } else {
+    descWrap.style.display='none';
+  }
   document.getElementById('detail-modal').classList.add('open');
+}
+function editCurrentTask(){
+  closeModal('detail-modal');
+  setTimeout(()=>openAddModal(currentDetailId),300);
 }
 function detailAction(status){const t=tasks.find(t=>t.id===currentDetailId);if(t){t.status=status;closeModal('detail-modal');renderTasks();updateStats();}}
 function deleteTask(){tasks=tasks.filter(t=>t.id!==currentDetailId);closeModal('detail-modal');renderTasks();updateStats();}
-function openAddModal(){
-  document.getElementById('member-grid').innerHTML=TEAM.map((m,i)=>`<div class="member-opt ${i===0?'sel':''}" onclick="selMember(this)"><div class="m-avatar" style="background:${m.color}">${m.name[0]}</div><div class="m-name">${m.name}</div></div>`).join('');
+function openAddModal(taskId){
+  editingTaskId=taskId;
+  const t=taskId?tasks.find(x=>x.id===taskId):null;
+  document.getElementById('add-modal-title').textContent=t?'Edit Task':'New Task';
   document.getElementById('new-project').innerHTML=PROJECTS.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
-  const tom=new Date(today);tom.setDate(tom.getDate()+1);
-  document.getElementById('new-due').value=tom.toISOString().split('T')[0];
-  document.getElementById('new-title').value='';
+  document.getElementById('member-grid').innerHTML=TEAM.map((m,i)=>`<div class="member-opt ${(!t&&i===0)||(t&&t.assignee===m.name)?'sel':''}" onclick="selMember(this)"><div class="m-avatar" style="background:${m.color}">${m.name[0]}</div><div class="m-name">${m.name}</div></div>`).join('');
+  if(t){
+    document.getElementById('new-title').value=t.title;
+    document.getElementById('new-desc').value=t.description||'';
+    document.getElementById('new-due').value=t.due;
+    document.getElementById('new-project').value=t.project;
+    document.querySelectorAll('.priority-opt').forEach(p=>p.classList.remove('sel'));
+    document.querySelector(`.priority-opt.p-${t.priority.toLowerCase()}`).classList.add('sel');
+  } else {
+    document.getElementById('new-title').value='';
+    document.getElementById('new-desc').value='';
+    const tom=new Date(today);tom.setDate(tom.getDate()+1);
+    document.getElementById('new-due').value=tom.toISOString().split('T')[0];
+    document.querySelectorAll('.priority-opt').forEach(p=>p.classList.remove('sel'));
+    document.querySelector('.priority-opt.p-medium').classList.add('sel');
+  }
   document.getElementById('add-modal').classList.add('open');
   setTimeout(()=>document.getElementById('new-title').focus(),350);
 }
@@ -467,11 +501,17 @@ function saveTask(){
   const title=document.getElementById('new-title').value.trim();
   if(!title){document.getElementById('new-title').focus();return;}
   const project=document.getElementById('new-project').value,due=document.getElementById('new-due').value;
+  const description=document.getElementById('new-desc').value.trim();
   const assignee=document.querySelector('.member-opt.sel .m-name')?.textContent||TEAM[0]?.name||'Unknown';
   const pEl=document.querySelector('.priority-opt.sel');
   const priority=pEl?.classList.contains('p-high')?'HIGH':pEl?.classList.contains('p-low')?'LOW':'MEDIUM';
-  const id='T'+String(taskCounter++).padStart(3,'0');
-  tasks.unshift({id,title,project,assignee,due,priority,status:'TODO'});
+  if(editingTaskId){
+    const t=tasks.find(x=>x.id===editingTaskId);
+    if(t){t.title=title;t.project=project;t.due=due;t.assignee=assignee;t.priority=priority;t.description=description;}
+  } else {
+    const id='T'+String(taskCounter++).padStart(3,'0');
+    tasks.unshift({id,title,project,assignee,due,priority,status:'TODO',description});
+  }
   closeModal('add-modal');renderTasks();updateStats();
 }
 function openSettings(){renderSettingsList();renderProjectList();document.getElementById('settings-modal').classList.add('open');}
