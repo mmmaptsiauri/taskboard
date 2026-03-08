@@ -185,6 +185,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .view::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -328,18 +329,68 @@ const DEFAULT_TASKS=[
   {id:"T012",title:"Payroll tax reconciliation — NovaTech",project:"Tax Filings March",assignee:"Davit",due:off(5),priority:"LOW",status:"TODO",description:""},
 ];
 
-// ── LOAD from localStorage (device memory) ──────────────
+// ── SUPABASE CONFIG ──────────────────────────────────────
+const SUPABASE_URL='https://hydykeghkzjsdiiitrou.supabase.co';
+const SUPABASE_KEY='sb_publishable_hZr73NQ5s6BBCVkXErBwZQ_04hJMAtu';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// ── LOAD from localStorage (instant, while Supabase loads) ──
 let tasks=JSON.parse(localStorage.getItem('tb_tasks')||'null')||DEFAULT_TASKS;
 let TEAM=JSON.parse(localStorage.getItem('tb_team')||'null')||DEFAULT_TEAM;
 let PROJECTS=JSON.parse(localStorage.getItem('tb_projects')||'null')||DEFAULT_PROJECTS;
 let taskCounter=parseInt(localStorage.getItem('tb_counter')||'13');
 
-// ── SAVE to localStorage ─────────────────────────────────
+// ── SYNC STATUS INDICATOR ────────────────────────────────
+function setSyncStatus(s){
+  const pill=document.querySelector('.sync-pill');
+  if(!pill)return;
+  if(s==='saving')pill.innerHTML='<div class="sync-dot" style="background:#92400E"></div>Saving...';
+  else if(s==='saved')pill.innerHTML='<div class="sync-dot"></div>Saved ☁️';
+  else pill.innerHTML='<div class="sync-dot" style="background:#B91C1C"></div>Offline';
+}
+
+// ── SAVE to localStorage + Supabase ─────────────────────
 function saveData(){
   localStorage.setItem('tb_tasks',JSON.stringify(tasks));
   localStorage.setItem('tb_team',JSON.stringify(TEAM));
   localStorage.setItem('tb_projects',JSON.stringify(PROJECTS));
   localStorage.setItem('tb_counter',taskCounter);
+  syncToSupabase();
+}
+
+async function syncToSupabase(){
+  setSyncStatus('saving');
+  try{
+    await Promise.all([
+      sb.from('tasks').upsert({id:'data',data:tasks}),
+      sb.from('team').upsert({id:'data',data:TEAM}),
+      sb.from('projects').upsert({id:'data',data:PROJECTS})
+    ]);
+    setSyncStatus('saved');
+  }catch(e){
+    console.error('Sync error:',e);
+    setSyncStatus('error');
+  }
+}
+
+// ── LOAD from Supabase on startup (overrides localStorage if cloud data exists) ──
+async function loadFromSupabase(){
+  try{
+    const[t,tm,p]=await Promise.all([
+      sb.from('tasks').select('data').eq('id','data').single(),
+      sb.from('team').select('data').eq('id','data').single(),
+      sb.from('projects').select('data').eq('id','data').single()
+    ]);
+    let changed=false;
+    if(t.data?.data){tasks=t.data.data;localStorage.setItem('tb_tasks',JSON.stringify(tasks));changed=true;}
+    if(tm.data?.data){TEAM=tm.data.data;updateMC();localStorage.setItem('tb_team',JSON.stringify(TEAM));changed=true;}
+    if(p.data?.data){PROJECTS=p.data.data;updatePC();localStorage.setItem('tb_projects',JSON.stringify(PROJECTS));changed=true;}
+    if(changed){renderTasks();updateStats();}
+    setSyncStatus('saved');
+  }catch(e){
+    console.error('Load from Supabase failed:',e);
+    setSyncStatus('error');
+  }
 }
 
 let MC=Object.fromEntries(TEAM.map(m=>[m.name,m.color]));
@@ -627,6 +678,7 @@ const mn=['January','February','March','April','May','June','July','August','Sep
 const n=new Date();
 document.getElementById('todayDate').textContent=`${dn[n.getDay()]}, ${n.getDate()} ${mn[n.getMonth()]}`;
 renderTasks();
+loadFromSupabase();
 </script>
 </body>
 </html>
