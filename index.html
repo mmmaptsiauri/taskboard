@@ -561,7 +561,7 @@ function setSort(val,el){
   renderTasks();
 }
 function renderTasks(){
-  let list=tasks;
+  let list=tasks.filter(t=>t.status!=='DONE'); // All tab never shows Done tasks
   if(currentFilter==='todo')list=tasks.filter(t=>t.status==='TODO');
   else if(currentFilter==='inprog')list=tasks.filter(t=>t.status==='IN_PROGRESS');
   else if(currentFilter==='blocked')list=tasks.filter(t=>t.status==='BLOCKED');
