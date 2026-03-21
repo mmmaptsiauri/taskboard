@@ -232,6 +232,38 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .backlog-card::before{background:var(--amber)}
 .backlog-promote-btn{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
 .backlog-promote-btn:active{background:#14532d;transform:scale(0.98)}
+
+/* ── QUICK CAPTURE ── */
+.quick-capture-bar{display:flex;align-items:center;gap:10px;padding:9px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.qc-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:8px 16px;font-family:'Lato',sans-serif;font-size:14px;background:var(--bg);color:var(--ink);outline:none;transition:border-color .15s;-webkit-appearance:none}
+.qc-input:focus{border-color:var(--accent)}
+.qc-flash{animation:qcFlash .4s ease}
+@keyframes qcFlash{0%{background:var(--green-light)}100%{background:var(--bg)}}
+
+/* ── SUBTASKS ── */
+.subtask-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.subtask-row:last-child{border-bottom:none}
+.subtask-check{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;cursor:pointer;transition:all .15s}
+.subtask-check.done{background:var(--green);border-color:var(--green);color:white}
+.subtask-title{flex:1;font-size:14px;font-weight:400;color:var(--ink);line-height:1.3}
+.subtask-title.done{text-decoration:line-through;color:var(--ink-faint)}
+.subtask-del{width:26px;height:26px;border:none;background:none;color:var(--ink-faint);font-size:14px;cursor:pointer;flex-shrink:0;border-radius:5px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.subtask-del:active{background:var(--red-light);color:var(--red)}
+.st-progress{font-size:11px;font-weight:700;color:var(--ink-faint);background:var(--surface2);padding:3px 8px;border-radius:10px}
+
+/* ── WEEKLY VIEW ── */
+.week-day-header{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:7px;background:var(--surface)}
+.week-day-header.is-today{background:var(--accent-light);border-color:var(--accent)}
+.week-day-name{font-size:14px;font-weight:700;color:var(--ink)}
+.week-day-header.is-today .week-day-name{color:var(--accent)}
+.week-day-date{font-size:13px;color:var(--ink-faint);flex:1}
+.week-task-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;margin-bottom:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.week-task-row:active{transform:scale(0.98)}
+.week-task-row.is-done{opacity:0.5}
+.week-task-title{flex:1;font-size:14px;font-weight:700}
+.week-task-row.is-done .week-task-title{text-decoration:line-through;color:var(--ink-faint)}
+.week-empty{padding:8px 12px;font-size:13px;color:var(--ink-faint)}
+.cal-mode-row{display:flex;gap:8px;margin-bottom:14px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -244,6 +276,10 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
       <button class="settings-btn" onclick="openSettings()">⚙️</button>
       <button class="add-btn" onclick="openAddModal(null)">＋ Add Task</button>
     </div>
+  </div>
+  <div class="quick-capture-bar">
+    <span style="font-size:16px">⚡</span>
+    <input class="qc-input" id="quick-capture" placeholder="სწრაფი ჩანაწერი → Enter = Backlog-ში" onkeydown="quickCapture(event)">
   </div>
   <div class="stat-strip">
     <div class="stat-tile s-accent active" onclick="statFilter('all',this)"><div class="stat-label">Active</div><div class="stat-num" id="stat-active">0</div><div class="stat-sub">tasks</div></div>
@@ -276,7 +312,10 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 
     <!-- CALENDAR VIEW -->
     <div class="view" id="view-calendar">
-      <div class="view-title">Calendar</div>
+      <div class="cal-mode-row">
+        <div class="filter-chip active" id="cal-mode-week" onclick="setCalMode('week',this)">📅 Week</div>
+        <div class="filter-chip" id="cal-mode-month" onclick="setCalMode('month',this)">🗓 Month</div>
+      </div>
       <div class="cal-nav">
         <button class="cal-nav-btn" onclick="calMove(-1)">‹</button>
         <span class="cal-month-label" id="cal-month-label">Month</span>
@@ -348,7 +387,15 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
       <div class="detail-row"><span class="detail-key">Due Date</span><span class="detail-val" id="d-due"></span></div>
       <div class="detail-row"><span class="detail-key">Priority</span><span class="detail-val" id="d-priority"></span></div>
       <div class="detail-row" style="border:none"><span class="detail-key">Status</span><span class="detail-val" id="d-status"></span></div>
-      <div class="action-grid">
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-faint);margin-bottom:10px">☑ Subtasks</div>
+        <div id="d-subtasks-list"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input class="field-input" style="flex:1;padding:10px 12px;font-size:14px" id="subtask-input" placeholder="Add subtask..." onkeydown="if(event.key==='Enter')addSubtask()">
+          <button onclick="addSubtask()" style="width:42px;height:42px;border:none;border-radius:10px;background:var(--accent);color:white;font-size:20px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent">＋</button>
+        </div>
+      </div>
+      <div class="action-grid" style="margin-top:16px">
         <button class="action-btn a-accent" onclick="editCurrentTask()">✏️ Edit Task</button>
         <button class="action-btn a-green" onclick="detailAction('DONE')">✅ Mark Done</button>
         <button class="action-btn a-blue" onclick="detailAction('IN_PROGRESS')">🔄 In Progress</button>
@@ -564,6 +611,9 @@ let promotingFromBacklogId=null;
 // ── CALENDAR STATE ───────────────────────────────────────
 const calToday=new Date();
 let calYear=calToday.getFullYear(),calMonth=calToday.getMonth(),calSelectedDate=null;
+let calMode='week';
+function getWeekStart(d){const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;}
+let calWeekStart=getWeekStart(new Date());
 
 function days(s){const d=new Date(s);d.setHours(0,0,0,0);return Math.round((d-today)/86400000)}
 function fmt(s){return new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
@@ -581,12 +631,14 @@ function taskCard(t){
   else if(d===1)dTxt='Tomorrow';
   const c=MC[t.assignee]||'#888';
   const hasDesc=t.description&&t.description.trim();
+  const subs=t.subtasks||[];const stDone=subs.filter(s=>s.done).length;
+  const stPill=subs.length?`<span class="st-progress">${stDone}/${subs.length} ☑</span>`:'';
   return`<div class="task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}" onclick="openDetail('${t.id}')">
     <div class="task-top">
       <div class="task-checkbox" onclick="event.stopPropagation();toggleDone('${t.id}')">${done?'✓':''}</div>
       <div class="task-body">
         <div class="task-title">${t.title}</div>
-        <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}</div>
+        <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}${stPill}</div>
       </div>
     </div>
     <div class="task-bottom"><span class="status-pill ${sClass(t.status)}">${sLabel(t.status)}</span><span class="due-label ${dCls}">${dTxt}</span></div>
@@ -728,6 +780,8 @@ function openDetail(id){
   const descWrap=document.getElementById('d-desc-wrap');
   if(t.description&&t.description.trim()){document.getElementById('d-desc').textContent=t.description;descWrap.style.display='block';}
   else{descWrap.style.display='none';}
+  renderSubtasks(id);
+  document.getElementById('subtask-input').value='';
   document.getElementById('detail-modal').classList.add('open');
 }
 function editCurrentTask(){closeModal('detail-modal');setTimeout(()=>openAddModal(currentDetailId),300);}
@@ -863,9 +917,56 @@ function deleteItem(mode,index){
 const CAL_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const CAL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function calMove(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-
+function setCalMode(mode,el){
+  calMode=mode;
+  document.querySelectorAll('.cal-mode-row .filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderCalendar();
+}
+function calMove(dir){
+  if(calMode==='week'){calWeekStart.setDate(calWeekStart.getDate()+dir*7);}
+  else{calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}}
+  renderCalendar();
+}
 function renderCalendar(){
+  if(calMode==='week'){renderWeekView();return;}
+  renderMonthView();
+}
+function renderWeekView(){
+  const weekEnd=new Date(calWeekStart);weekEnd.setDate(weekEnd.getDate()+6);
+  const f1=calWeekStart.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const f2=weekEnd.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('cal-month-label').textContent=`${f1} – ${f2}`;
+  const todayStr=calToday.toISOString().split('T')[0];
+  const byDate={};tasks.forEach(t=>{if(!byDate[t.due])byDate[t.due]=[];byDate[t.due].push(t);});
+  const DAY_NAMES=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  let html='';
+  for(let i=0;i<7;i++){
+    const d=new Date(calWeekStart);d.setDate(d.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const isToday=ds===todayStr;
+    const dayFmt=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    const dt=byDate[ds]||[];
+    html+=`<div style="margin-bottom:18px">
+      <div class="week-day-header ${isToday?'is-today':''}">
+        <span class="week-day-name">${DAY_NAMES[i]}</span>
+        <span class="week-day-date">${dayFmt}</span>
+        ${dt.length?`<span class="st-progress">${dt.length}</span>`:''}
+      </div>
+      ${dt.length?dt.map(t=>{
+        const done=t.status==='DONE';const c=MC[t.assignee]||'#888';
+        return`<div class="week-task-row ${done?'is-done':''}" onclick="openDetail('${t.id}')">
+          <div class="task-checkbox" onclick="event.stopPropagation();toggleDone('${t.id}')" style="flex-shrink:0">${done?'✓':''}</div>
+          <span class="week-task-title">${t.title}</span>
+          <span class="a-dot" style="background:${c};flex-shrink:0">${t.assignee[0]}</span>
+        </div>`;
+      }).join(''):`<div class="week-empty">No tasks due</div>`}
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  document.getElementById('cal-day-tasks').innerHTML='';
+}
+function renderMonthView(){
   document.getElementById('cal-month-label').textContent=CAL_MONTHS[calMonth]+' '+calYear;
   const firstDay=new Date(calYear,calMonth,1);
   // Monday-first: getDay() returns 0=Sun,1=Mon...6=Sat → we need Mon=0
@@ -975,6 +1076,54 @@ function deleteNote(){
   if(!confirm('Delete this note?'))return;
   notes=notes.filter(n=>n.id!==editingNoteId);
   saveData();closeModal('note-modal');renderNotes();
+}
+
+// ── QUICK CAPTURE ─────────────────────────────────────────
+function quickCapture(e){
+  if(e.key!=='Enter')return;
+  const val=e.target.value.trim();if(!val)return;
+  const id='B'+String(backlogCounter++).padStart(3,'0');
+  const now=new Date().toISOString().split('T')[0];
+  backlog.unshift({id,title:val,notes:'',project:'',created:now});
+  saveData();updateBacklogBadge();
+  e.target.value='';
+  e.target.classList.add('qc-flash');
+  const ph=e.target.placeholder;
+  e.target.placeholder='✅ Added to Backlog!';
+  setTimeout(()=>{e.target.placeholder=ph;e.target.classList.remove('qc-flash');},1500);
+}
+
+// ── SUBTASKS ──────────────────────────────────────────────
+function renderSubtasks(taskId){
+  const t=tasks.find(x=>x.id===taskId);if(!t)return;
+  const subs=t.subtasks||[];
+  const wrap=document.getElementById('d-subtasks-list');
+  if(!subs.length){wrap.innerHTML='<div style="font-size:13px;color:var(--ink-faint);padding:4px 0 8px">No subtasks yet</div>';return;}
+  wrap.innerHTML=subs.map((s,i)=>`
+    <div class="subtask-row">
+      <div class="subtask-check ${s.done?'done':''}" onclick="toggleSubtask('${taskId}',${i})">${s.done?'✓':''}</div>
+      <span class="subtask-title ${s.done?'done':''}">${s.title}</span>
+      <button class="subtask-del" onclick="deleteSubtask('${taskId}',${i})">✕</button>
+    </div>`).join('');
+}
+function addSubtask(){
+  const inp=document.getElementById('subtask-input');
+  const title=inp.value.trim();if(!title)return;
+  const t=tasks.find(x=>x.id===currentDetailId);if(!t)return;
+  if(!t.subtasks)t.subtasks=[];
+  t.subtasks.push({title,done:false});
+  saveData();renderSubtasks(currentDetailId);renderTasks();
+  inp.value='';inp.focus();
+}
+function toggleSubtask(taskId,idx){
+  const t=tasks.find(x=>x.id===taskId);if(!t||!t.subtasks)return;
+  t.subtasks[idx].done=!t.subtasks[idx].done;
+  saveData();renderSubtasks(taskId);renderTasks();
+}
+function deleteSubtask(taskId,idx){
+  const t=tasks.find(x=>x.id===taskId);if(!t||!t.subtasks)return;
+  t.subtasks.splice(idx,1);
+  saveData();renderSubtasks(taskId);renderTasks();
 }
 
 // ── BACKLOG ───────────────────────────────────────────────
