@@ -227,6 +227,11 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .note-card-proj{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:var(--surface2);color:var(--ink-mid)}
 .note-editor-content{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none;resize:none;min-height:200px;line-height:1.6}
 .note-editor-content:focus{border-color:var(--accent)}
+
+/* ── BACKLOG ── */
+.backlog-card::before{background:var(--amber)}
+.backlog-promote-btn{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
+.backlog-promote-btn:active{background:#14532d;transform:scale(0.98)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -289,6 +294,16 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
       </div>
       <div id="notes-container"></div>
     </div>
+
+    <!-- BACKLOG VIEW -->
+    <div class="view" id="view-backlog">
+      <div class="notes-header-row">
+        <div class="view-title" style="margin-bottom:0">📥 Backlog</div>
+        <button class="notes-add-btn" style="background:var(--amber)" onclick="openBacklogModal(null)">＋ Add Item</button>
+      </div>
+      <div style="font-size:13px;color:var(--ink-faint);margin-bottom:16px;line-height:1.5">ჩამოწერე ყველა დავალება deadline-ის გარეშე. მზად რომ იქნება — გადაიტანე Task-ად.</div>
+      <div id="backlog-container"></div>
+    </div>
   </div>
   <div class="bottom-nav">
     <div class="nav-item active" onclick="switchView('tasks',this)"><div class="nav-icon">📋</div><div class="nav-label">Tasks</div></div>
@@ -296,6 +311,7 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
     <div class="nav-item" onclick="switchView('team',this)"><div class="nav-icon">👥</div><div class="nav-label">Team</div></div>
     <div class="nav-item" onclick="switchView('calendar',this)"><div class="nav-icon">📅</div><div class="nav-label">Calendar</div></div>
     <div class="nav-item" onclick="switchView('notes',this)"><div class="nav-icon">📝</div><div class="nav-label">Notes</div></div>
+    <div class="nav-item" onclick="switchView('backlog',this)"><div class="nav-icon">📥</div><div class="nav-label">Backlog</div><div class="nav-badge" id="backlog-badge" style="display:none;background:var(--amber)">0</div></div>
     <div class="nav-item" onclick="switchView('overdue',this)"><div class="nav-icon">⚠️</div><div class="nav-label">Overdue</div><div class="nav-badge" id="overdue-badge" style="display:none">0</div></div>
   </div>
 </div>
@@ -388,6 +404,32 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
   </div>
 </div>
 
+<!-- BACKLOG MODAL -->
+<div class="modal-backdrop" id="backlog-modal" onclick="backdropClose(event,'backlog-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title" id="backlog-modal-title">New Backlog Item</span><button class="modal-close" onclick="closeModal('backlog-modal')">✕</button></div>
+    <div class="modal-body">
+      <div><div class="field-label">Title</div><input class="field-input" type="text" placeholder="e.g. Research new software" id="backlog-title-input"></div>
+      <div>
+        <div class="field-label">Project (optional)</div>
+        <select class="field-input" id="backlog-project-input">
+          <option value="">— No Project —</option>
+        </select>
+      </div>
+      <div><div class="field-label">Notes (optional)</div><textarea class="note-editor-content" style="min-height:120px" placeholder="ნებისმიერი დეტალი, კონტექსტი, ან იდეა..." id="backlog-notes-input"></textarea></div>
+      <div id="backlog-promote-wrap" style="display:none">
+        <button class="backlog-promote-btn" onclick="promoteToTask()">✅ გადაიტანე Task-ად →</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="backlog-delete-btn" onclick="deleteBacklogItem()" style="flex:1;background:var(--red-light);border-color:var(--red);color:var(--red);display:none">🗑️</button>
+      <button class="btn-cancel" onclick="closeModal('backlog-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveBacklogItem()">Save →</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT/ADD ITEM MODAL -->
 <div class="modal-backdrop" id="item-modal" onclick="backdropClose(event,'item-modal')" style="z-index:200">
   <div class="modal-sheet" style="z-index:201">
@@ -453,6 +495,8 @@ function saveData(){
   localStorage.setItem('tb_counter',taskCounter);
   localStorage.setItem('tb_notes',JSON.stringify(notes));
   localStorage.setItem('tb_notes_counter',notesCounter);
+  localStorage.setItem('tb_backlog',JSON.stringify(backlog));
+  localStorage.setItem('tb_backlog_counter',backlogCounter);
   syncToSupabase();
 }
 
@@ -463,7 +507,8 @@ async function syncToSupabase(){
       sb.from('tasks').upsert({id:'data',data:tasks}),
       sb.from('team').upsert({id:'data',data:TEAM}),
       sb.from('projects').upsert({id:'data',data:PROJECTS}),
-      sb.from('tasks').upsert({id:'notes_data',data:notes})
+      sb.from('tasks').upsert({id:'notes_data',data:notes}),
+      sb.from('tasks').upsert({id:'backlog_data',data:backlog})
     ]);
     setSyncStatus('saved');
   }catch(e){
@@ -475,18 +520,20 @@ async function syncToSupabase(){
 // ── LOAD from Supabase on startup (overrides localStorage if cloud data exists) ──
 async function loadFromSupabase(){
   try{
-    const[t,tm,p,n]=await Promise.all([
+    const[t,tm,p,n,bl]=await Promise.all([
       sb.from('tasks').select('data').eq('id','data').single(),
       sb.from('team').select('data').eq('id','data').single(),
       sb.from('projects').select('data').eq('id','data').single(),
-      sb.from('tasks').select('data').eq('id','notes_data').single()
+      sb.from('tasks').select('data').eq('id','notes_data').single(),
+      sb.from('tasks').select('data').eq('id','backlog_data').single()
     ]);
     let changed=false;
     if(t.data?.data){tasks=t.data.data;localStorage.setItem('tb_tasks',JSON.stringify(tasks));changed=true;}
     if(tm.data?.data){TEAM=tm.data.data;updateMC();localStorage.setItem('tb_team',JSON.stringify(TEAM));changed=true;}
     if(p.data?.data){PROJECTS=p.data.data;updatePC();localStorage.setItem('tb_projects',JSON.stringify(PROJECTS));changed=true;}
     if(n.data?.data){notes=n.data.data;localStorage.setItem('tb_notes',JSON.stringify(notes));changed=true;}
-    if(changed){renderTasks();updateStats();}
+    if(bl.data?.data){backlog=bl.data.data;localStorage.setItem('tb_backlog',JSON.stringify(backlog));changed=true;}
+    if(changed){renderTasks();updateStats();updateBacklogBadge();}
     setSyncStatus('saved');
   }catch(e){
     console.error('Load from Supabase failed:',e);
@@ -507,6 +554,12 @@ let currentSort='due'; // 'due' | 'priority' | 'assignee' | 'project'
 let notes=JSON.parse(localStorage.getItem('tb_notes')||'[]');
 let notesCounter=parseInt(localStorage.getItem('tb_notes_counter')||'1');
 let editingNoteId=null;
+
+// ── BACKLOG STATE ─────────────────────────────────────────
+let backlog=JSON.parse(localStorage.getItem('tb_backlog')||'[]');
+let backlogCounter=parseInt(localStorage.getItem('tb_backlog_counter')||'1');
+let editingBacklogId=null;
+let promotingFromBacklogId=null;
 
 // ── CALENDAR STATE ───────────────────────────────────────
 const calToday=new Date();
@@ -618,6 +671,7 @@ function switchView(name,el){
   if(name==='overdue')renderOverdue();
   if(name==='calendar')renderCalendar();
   if(name==='notes')renderNotes();
+  if(name==='backlog')renderBacklog();
 }
 function filterStatus(val,el){
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
@@ -725,6 +779,11 @@ function saveTask(){
   } else {
     const id='T'+String(taskCounter++).padStart(3,'0');
     tasks.unshift({id,title,project,assignee,due,priority,status:'TODO',description});
+  }
+  if(promotingFromBacklogId){
+    backlog=backlog.filter(x=>x.id!==promotingFromBacklogId);
+    promotingFromBacklogId=null;
+    updateBacklogBadge();
   }
   saveData();closeModal('add-modal');renderTasks();updateStats();
 }
@@ -918,6 +977,85 @@ function deleteNote(){
   saveData();closeModal('note-modal');renderNotes();
 }
 
+// ── BACKLOG ───────────────────────────────────────────────
+function updateBacklogBadge(){
+  const b=document.getElementById('backlog-badge');
+  if(!b)return;
+  b.textContent=backlog.length;
+  b.style.display=backlog.length>0?'flex':'none';
+}
+
+function renderBacklog(){
+  const wrap=document.getElementById('backlog-container');
+  if(!backlog.length){
+    wrap.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--ink-faint)"><div style="font-size:44px;margin-bottom:12px">📥</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">Backlog ცარიელია</div><div style="font-size:14px">"+ Add Item" დააჭირე — ჩამოწერე ყველაფერი</div></div>`;
+    return;
+  }
+  const sorted=[...backlog].sort((a,b)=>b.created.localeCompare(a.created));
+  wrap.innerHTML=sorted.map(item=>{
+    const preview=(item.notes||'').replace(/\n/g,' ').trim()||'';
+    const d=new Date(item.created);
+    const dateLabel=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const projBadge=item.project?`<span class="note-card-proj">${item.project}</span>`:'';
+    return`<div class="note-card backlog-card" onclick="openBacklogModal('${item.id}')">
+      <div class="note-card-title">${item.title}</div>
+      ${preview?`<div class="note-card-preview">${preview}</div>`:''}
+      <div class="note-card-meta"><span class="note-card-date">📥 ${dateLabel}</span>${projBadge}</div>
+    </div>`;
+  }).join('');
+}
+
+function openBacklogModal(itemId){
+  editingBacklogId=itemId;
+  const item=itemId?backlog.find(x=>x.id===itemId):null;
+  document.getElementById('backlog-modal-title').textContent=item?'Edit Backlog Item':'New Backlog Item';
+  document.getElementById('backlog-project-input').innerHTML='<option value="">— No Project —</option>'+PROJECTS.map(p=>`<option value="${p.name}" ${item&&item.project===p.name?'selected':''}>${p.name}</option>`).join('');
+  document.getElementById('backlog-title-input').value=item?item.title:'';
+  document.getElementById('backlog-notes-input').value=item?item.notes:'';
+  document.getElementById('backlog-delete-btn').style.display=item?'block':'none';
+  document.getElementById('backlog-promote-wrap').style.display=item?'block':'none';
+  document.getElementById('backlog-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('backlog-title-input').focus(),350);
+}
+
+function saveBacklogItem(){
+  const title=document.getElementById('backlog-title-input').value.trim();
+  if(!title){document.getElementById('backlog-title-input').focus();return;}
+  const notes_text=document.getElementById('backlog-notes-input').value.trim();
+  const project=document.getElementById('backlog-project-input').value;
+  const now=new Date().toISOString().split('T')[0];
+  if(editingBacklogId){
+    const item=backlog.find(x=>x.id===editingBacklogId);
+    if(item){item.title=title;item.notes=notes_text;item.project=project;}
+  } else {
+    const id='B'+String(backlogCounter++).padStart(3,'0');
+    backlog.unshift({id,title,notes:notes_text,project,created:now});
+  }
+  saveData();closeModal('backlog-modal');renderBacklog();updateBacklogBadge();
+}
+
+function deleteBacklogItem(){
+  if(!editingBacklogId)return;
+  if(!confirm('წაშლა?'))return;
+  backlog=backlog.filter(x=>x.id!==editingBacklogId);
+  saveData();closeModal('backlog-modal');renderBacklog();updateBacklogBadge();
+}
+
+function promoteToTask(){
+  const item=backlog.find(x=>x.id===editingBacklogId);
+  if(!item)return;
+  promotingFromBacklogId=editingBacklogId;
+  closeModal('backlog-modal');
+  setTimeout(()=>{
+    openAddModal(null);
+    setTimeout(()=>{
+      document.getElementById('new-title').value=item.title;
+      document.getElementById('new-desc').value=item.notes||'';
+      if(item.project)document.getElementById('new-project').value=item.project;
+    },400);
+  },300);
+}
+
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function backdropClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 const dn=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -925,6 +1063,7 @@ const mn=['January','February','March','April','May','June','July','August','Sep
 const n=new Date();
 document.getElementById('todayDate').textContent=`${dn[n.getDay()]}, ${n.getDate()} ${mn[n.getMonth()]}`;
 renderTasks();
+updateBacklogBadge();
 loadFromSupabase();
 </script>
 </body>
