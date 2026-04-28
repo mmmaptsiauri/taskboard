@@ -229,19 +229,25 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .note-editor-content:focus{border-color:var(--accent)}
 
 /* ── BACKLOG LIST ── */
-.bl-inline-wrap{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:2px solid var(--amber);border-radius:var(--radius);margin-bottom:14px}
+.bl-inline-wrap{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;background:var(--surface);border:2px solid var(--amber);border-radius:var(--radius);margin-bottom:14px}
 .bl-inline-wrap:focus-within{border-color:var(--accent)}
 .bl-inline-input{flex:1;border:none;background:transparent;font-family:'Lato',sans-serif;font-size:15px;color:var(--ink);outline:none}
 .bl-inline-input::placeholder{color:var(--ink-faint)}
-.bl-inline-hint{font-size:11px;font-weight:700;color:var(--ink-faint);background:var(--surface2);padding:3px 8px;border-radius:6px;flex-shrink:0}
-.bl-list-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;animation:fadeUp .18s ease both;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.bl-add-btn{width:44px;height:44px;border:none;background:var(--amber);color:white;border-radius:10px;font-size:24px;font-weight:700;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s;line-height:1}
+.bl-add-btn:active{background:#92400E;transform:scale(0.90)}
+.bl-list-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;animation:fadeUp .18s ease both;-webkit-tap-highlight-color:transparent;transition:all .15s}
 .bl-list-item:active{background:var(--surface2)}
-.bl-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--amber);flex-shrink:0}
-.bl-title{flex:1;font-size:14px;font-weight:700;color:var(--ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-list-item.bl-done{opacity:0.45;background:var(--bg)}
+.bl-list-item.bl-done .bl-title{text-decoration:line-through;color:var(--ink-faint)}
+.bl-check{width:24px;height:24px;border:2px solid var(--border);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.bl-check.done{background:var(--green);border-color:var(--green);color:white}
+.bl-title{flex:1;font-size:14px;font-weight:700;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .bl-proj{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:var(--amber-light);color:var(--amber);flex-shrink:0;white-space:nowrap}
 .bl-age{font-size:11px;color:var(--ink-faint);font-weight:700;flex-shrink:0}
-.bl-promote{width:30px;height:30px;border:none;background:var(--green-light);border-radius:8px;color:var(--green);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s}
-.bl-promote:active{background:var(--green);color:white;transform:scale(0.90)}
+.bl-promote{width:32px;height:32px;border:none;background:var(--green-light);border-radius:8px;color:var(--green);font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s;touch-action:manipulation}
+.bl-promote:active{background:var(--green);color:white;transform:scale(0.88)}
+.bl-del{width:32px;height:32px;border:none;background:var(--surface2);border-radius:8px;color:var(--ink-faint);font-size:15px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s;touch-action:manipulation}
+.bl-del:active{background:var(--red-light);color:var(--red);transform:scale(0.88)}
 .backlog-promote-btn{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
 .backlog-promote-btn:active{background:#14532d;transform:scale(0.98)}
 
@@ -354,8 +360,8 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
       </div>
       <div class="bl-inline-wrap">
         <span style="font-size:16px;flex-shrink:0">✏️</span>
-        <input class="bl-inline-input" id="bl-inline-input" placeholder="ჩაწერე და Enter → მეორე item..." onkeydown="addBacklogInline(event)">
-        <span class="bl-inline-hint">↩ Enter</span>
+        <input class="bl-inline-input" id="bl-inline-input" placeholder="ჩაწერე task-ი..." onkeydown="addBacklogInline(event)">
+        <button class="bl-add-btn" onclick="addBacklogFromBtn()">＋</button>
       </div>
       <div id="backlog-container"></div>
     </div>
@@ -668,7 +674,7 @@ function taskCard(t){
   const stPill=subs.length?`<span class="st-progress">${stDone}/${subs.length} ☑</span>`:'';
   return`<div class="task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}" onclick="openDetail('${t.id}')">
     <div class="task-top">
-      <div class="task-checkbox" onclick="event.stopPropagation();toggleDone('${t.id}')">${done?'✓':''}</div>
+      <div class="task-checkbox" onclick="event.stopPropagation();event.preventDefault();toggleDone('${t.id}')">${done?'✓':''}</div>
       <div class="task-body">
         <div class="task-title">${t.title}</div>
         <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}${stPill}</div>
@@ -1117,7 +1123,7 @@ function quickCapture(e){
   const val=e.target.value.trim();if(!val)return;
   const id='B'+String(backlogCounter++).padStart(3,'0');
   const now=new Date().toISOString().split('T')[0];
-  backlog.unshift({id,title:val,notes:'',project:'',created:now});
+  backlog.unshift({id,title:val,notes:'',project:'',created:now,done:false});
   saveData();updateBacklogBadge();
   e.target.value='';
   e.target.classList.add('qc-flash');
@@ -1163,28 +1169,34 @@ function deleteSubtask(taskId,idx){
 function updateBacklogBadge(){
   const b=document.getElementById('backlog-badge');
   if(!b)return;
-  b.textContent=backlog.length;
-  b.style.display=backlog.length>0?'flex':'none';
+  const count=backlog.filter(x=>!x.done).length;
+  b.textContent=count;
+  b.style.display=count>0?'flex':'none';
 }
 
 function renderBacklog(){
   const wrap=document.getElementById('backlog-container');
   if(!backlog.length){
-    wrap.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--ink-faint)"><div style="font-size:40px;margin-bottom:10px">📥</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">Backlog ცარიელია</div><div style="font-size:13px">ზევით ჩაწერე და Enter დააჭირე</div></div>`;
+    wrap.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--ink-faint)"><div style="font-size:40px;margin-bottom:10px">📥</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">ცარიელია</div><div style="font-size:13px">ზევით ჩაწერე → ＋ ან Enter</div></div>`;
     return;
   }
-  const sorted=[...backlog].sort((a,b)=>b.created.localeCompare(a.created));
   const now=new Date();
+  const active=[...backlog].filter(x=>!x.done).sort((a,b)=>b.created.localeCompare(a.created));
+  const done=[...backlog].filter(x=>x.done).sort((a,b)=>b.created.localeCompare(a.created));
+  const sorted=[...active,...done];
+  const mkAge=item=>{const d=Math.floor((now-new Date(item.created))/86400000);return d===0?'დღეს':d===1?'1d':d<7?`${d}d`:`${Math.floor(d/7)}w`;};
   wrap.innerHTML=sorted.map(item=>{
-    const diffDays=Math.floor((now-new Date(item.created))/86400000);
-    const age=diffDays===0?'დღეს':diffDays===1?'1d':diffDays<7?`${diffDays}d`:`${Math.floor(diffDays/7)}w`;
-    const projBadge=item.project?`<span class="bl-proj">${item.project}</span>`:'';
-    return`<div class="bl-list-item" onclick="openBacklogModal('${item.id}')">
-      <div class="bl-dot"></div>
-      <span class="bl-title">${item.title}</span>
-      ${projBadge}
-      <span class="bl-age">${age}</span>
-      <button class="bl-promote" onclick="event.stopPropagation();quickPromote('${item.id}')" title="Task-ად გადატანა">✅</button>
+    const isDone=!!item.done;
+    const proj=item.project?`<span class="bl-proj">${item.project}</span>`:'';
+    const rightBtn=isDone
+      ?`<button class="bl-del" onclick="event.stopPropagation();event.preventDefault();deleteBacklogById('${item.id}')">🗑️</button>`
+      :`<button class="bl-promote" onclick="event.stopPropagation();event.preventDefault();quickPromote('${item.id}')">✅</button>`;
+    return`<div class="bl-list-item${isDone?' bl-done':''}">
+      <div class="bl-check${isDone?' done':''}" onclick="event.stopPropagation();event.preventDefault();toggleBacklogDone('${item.id}')">${isDone?'✓':''}</div>
+      <span class="bl-title" onclick="openBacklogModal('${item.id}')">${item.title}</span>
+      ${proj}
+      <span class="bl-age">${mkAge(item)}</span>
+      ${rightBtn}
     </div>`;
   }).join('');
 }
@@ -1195,10 +1207,31 @@ function addBacklogInline(e){
   const val=inp.value.trim();if(!val)return;
   const id='B'+String(backlogCounter++).padStart(3,'0');
   const now=new Date().toISOString().split('T')[0];
-  backlog.unshift({id,title:val,notes:'',project:'',created:now});
+  backlog.unshift({id,title:val,notes:'',project:'',created:now,done:false});
   saveData();updateBacklogBadge();renderBacklog();
-  inp.value='';
-  inp.focus();
+  inp.value='';inp.focus();
+}
+
+function addBacklogFromBtn(){
+  const inp=document.getElementById('bl-inline-input');
+  const val=inp.value.trim();
+  if(!val){inp.focus();return;}
+  const id='B'+String(backlogCounter++).padStart(3,'0');
+  const now=new Date().toISOString().split('T')[0];
+  backlog.unshift({id,title:val,notes:'',project:'',created:now,done:false});
+  saveData();updateBacklogBadge();renderBacklog();
+  inp.value='';inp.focus();
+}
+
+function toggleBacklogDone(id){
+  const item=backlog.find(x=>x.id===id);if(!item)return;
+  item.done=!item.done;
+  saveData();updateBacklogBadge();renderBacklog();
+}
+
+function deleteBacklogById(id){
+  backlog=backlog.filter(x=>x.id!==id);
+  saveData();updateBacklogBadge();renderBacklog();
 }
 
 function quickPromote(itemId){
@@ -1231,7 +1264,7 @@ function savePasteList(){
   const now=new Date().toISOString().split('T')[0];
   lines.forEach(title=>{
     const id='B'+String(backlogCounter++).padStart(3,'0');
-    backlog.unshift({id,title,notes:'',project:'',created:now});
+    backlog.unshift({id,title,notes:'',project:'',created:now,done:false});
   });
   saveData();updateBacklogBadge();closeModal('paste-modal');renderBacklog();
 }
@@ -1260,7 +1293,7 @@ function saveBacklogItem(){
     if(item){item.title=title;item.notes=notes_text;item.project=project;}
   } else {
     const id='B'+String(backlogCounter++).padStart(3,'0');
-    backlog.unshift({id,title,notes:notes_text,project,created:now});
+    backlog.unshift({id,title,notes:notes_text,project,created:now,done:false});
   }
   saveData();closeModal('backlog-modal');renderBacklog();updateBacklogBadge();
 }
