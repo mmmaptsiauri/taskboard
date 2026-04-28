@@ -228,8 +228,20 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 .note-editor-content{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;color:var(--ink);background:var(--bg);outline:none;transition:border-color .15s;-webkit-appearance:none;resize:none;min-height:200px;line-height:1.6}
 .note-editor-content:focus{border-color:var(--accent)}
 
-/* ── BACKLOG ── */
-.backlog-card::before{background:var(--amber)}
+/* ── BACKLOG LIST ── */
+.bl-inline-wrap{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:2px solid var(--amber);border-radius:var(--radius);margin-bottom:14px}
+.bl-inline-wrap:focus-within{border-color:var(--accent)}
+.bl-inline-input{flex:1;border:none;background:transparent;font-family:'Lato',sans-serif;font-size:15px;color:var(--ink);outline:none}
+.bl-inline-input::placeholder{color:var(--ink-faint)}
+.bl-inline-hint{font-size:11px;font-weight:700;color:var(--ink-faint);background:var(--surface2);padding:3px 8px;border-radius:6px;flex-shrink:0}
+.bl-list-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;animation:fadeUp .18s ease both;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.bl-list-item:active{background:var(--surface2)}
+.bl-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--amber);flex-shrink:0}
+.bl-title{flex:1;font-size:14px;font-weight:700;color:var(--ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-proj{font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:var(--amber-light);color:var(--amber);flex-shrink:0;white-space:nowrap}
+.bl-age{font-size:11px;color:var(--ink-faint);font-weight:700;flex-shrink:0}
+.bl-promote{width:30px;height:30px;border:none;background:var(--green-light);border-radius:8px;color:var(--green);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:all .15s}
+.bl-promote:active{background:var(--green);color:white;transform:scale(0.90)}
 .backlog-promote-btn{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:10px;font-family:'Lato',sans-serif;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px}
 .backlog-promote-btn:active{background:#14532d;transform:scale(0.98)}
 
@@ -336,11 +348,15 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
 
     <!-- BACKLOG VIEW -->
     <div class="view" id="view-backlog">
-      <div class="notes-header-row">
+      <div class="notes-header-row" style="margin-bottom:12px">
         <div class="view-title" style="margin-bottom:0">📥 Backlog</div>
-        <button class="notes-add-btn" style="background:var(--amber)" onclick="openBacklogModal(null)">＋ Add Item</button>
+        <button class="notes-add-btn" style="background:var(--ink-mid);font-size:12px;height:34px;padding:0 12px" onclick="openPasteModal()">📋 სიის ჩასმა</button>
       </div>
-      <div style="font-size:13px;color:var(--ink-faint);margin-bottom:16px;line-height:1.5">ჩამოწერე ყველა დავალება deadline-ის გარეშე. მზად რომ იქნება — გადაიტანე Task-ად.</div>
+      <div class="bl-inline-wrap">
+        <span style="font-size:16px;flex-shrink:0">✏️</span>
+        <input class="bl-inline-input" id="bl-inline-input" placeholder="ჩაწერე და Enter → მეორე item..." onkeydown="addBacklogInline(event)">
+        <span class="bl-inline-hint">↩ Enter</span>
+      </div>
       <div id="backlog-container"></div>
     </div>
   </div>
@@ -473,6 +489,23 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
       <button class="btn-cancel" id="backlog-delete-btn" onclick="deleteBacklogItem()" style="flex:1;background:var(--red-light);border-color:var(--red);color:var(--red);display:none">🗑️</button>
       <button class="btn-cancel" onclick="closeModal('backlog-modal')">Cancel</button>
       <button class="btn-save" onclick="saveBacklogItem()">Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASTE LIST MODAL -->
+<div class="modal-backdrop" id="paste-modal" onclick="backdropClose(event,'paste-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title">📋 სიის ჩასმა</span><button class="modal-close" onclick="closeModal('paste-modal')">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--ink-mid);line-height:1.5;margin-bottom:4px">თითო სტრიქონი = ერთი backlog item. ჩასვი ან ჩაწერე:</div>
+      <textarea class="note-editor-content" id="paste-input" style="min-height:180px" placeholder="Research competitor pricing&#10;Write Q2 report outline&#10;Schedule team meeting&#10;Review budget proposal" oninput="updatePastePreview()"></textarea>
+      <div id="paste-preview" style="font-size:12px;font-weight:700;color:var(--green);margin-top:6px;min-height:18px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('paste-modal')">Cancel</button>
+      <button class="btn-save" onclick="savePasteList()">ყველა დამატება →</button>
     </div>
   </div>
 </div>
@@ -723,7 +756,7 @@ function switchView(name,el){
   if(name==='overdue')renderOverdue();
   if(name==='calendar')renderCalendar();
   if(name==='notes')renderNotes();
-  if(name==='backlog')renderBacklog();
+  if(name==='backlog'){renderBacklog();setTimeout(()=>document.getElementById('bl-inline-input')?.focus(),200);}
 }
 function filterStatus(val,el){
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
@@ -1137,21 +1170,70 @@ function updateBacklogBadge(){
 function renderBacklog(){
   const wrap=document.getElementById('backlog-container');
   if(!backlog.length){
-    wrap.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--ink-faint)"><div style="font-size:44px;margin-bottom:12px">📥</div><div style="font-size:16px;font-weight:700;margin-bottom:6px">Backlog ცარიელია</div><div style="font-size:14px">"+ Add Item" დააჭირე — ჩამოწერე ყველაფერი</div></div>`;
+    wrap.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--ink-faint)"><div style="font-size:40px;margin-bottom:10px">📥</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">Backlog ცარიელია</div><div style="font-size:13px">ზევით ჩაწერე და Enter დააჭირე</div></div>`;
     return;
   }
   const sorted=[...backlog].sort((a,b)=>b.created.localeCompare(a.created));
+  const now=new Date();
   wrap.innerHTML=sorted.map(item=>{
-    const preview=(item.notes||'').replace(/\n/g,' ').trim()||'';
-    const d=new Date(item.created);
-    const dateLabel=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    const projBadge=item.project?`<span class="note-card-proj">${item.project}</span>`:'';
-    return`<div class="note-card backlog-card" onclick="openBacklogModal('${item.id}')">
-      <div class="note-card-title">${item.title}</div>
-      ${preview?`<div class="note-card-preview">${preview}</div>`:''}
-      <div class="note-card-meta"><span class="note-card-date">📥 ${dateLabel}</span>${projBadge}</div>
+    const diffDays=Math.floor((now-new Date(item.created))/86400000);
+    const age=diffDays===0?'დღეს':diffDays===1?'1d':diffDays<7?`${diffDays}d`:`${Math.floor(diffDays/7)}w`;
+    const projBadge=item.project?`<span class="bl-proj">${item.project}</span>`:'';
+    return`<div class="bl-list-item" onclick="openBacklogModal('${item.id}')">
+      <div class="bl-dot"></div>
+      <span class="bl-title">${item.title}</span>
+      ${projBadge}
+      <span class="bl-age">${age}</span>
+      <button class="bl-promote" onclick="event.stopPropagation();quickPromote('${item.id}')" title="Task-ად გადატანა">✅</button>
     </div>`;
   }).join('');
+}
+
+function addBacklogInline(e){
+  if(e.key!=='Enter')return;
+  const inp=document.getElementById('bl-inline-input');
+  const val=inp.value.trim();if(!val)return;
+  const id='B'+String(backlogCounter++).padStart(3,'0');
+  const now=new Date().toISOString().split('T')[0];
+  backlog.unshift({id,title:val,notes:'',project:'',created:now});
+  saveData();updateBacklogBadge();renderBacklog();
+  inp.value='';
+  inp.focus();
+}
+
+function quickPromote(itemId){
+  const item=backlog.find(x=>x.id===itemId);
+  if(!item)return;
+  promotingFromBacklogId=itemId;
+  openAddModal(null);
+  setTimeout(()=>{
+    document.getElementById('new-title').value=item.title;
+    document.getElementById('new-desc').value=item.notes||'';
+    if(item.project)document.getElementById('new-project').value=item.project;
+  },400);
+}
+
+function openPasteModal(){
+  document.getElementById('paste-input').value='';
+  document.getElementById('paste-preview').textContent='';
+  document.getElementById('paste-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('paste-input').focus(),350);
+}
+
+function updatePastePreview(){
+  const lines=document.getElementById('paste-input').value.split('\n').filter(l=>l.trim()).length;
+  document.getElementById('paste-preview').textContent=lines?`${lines} item${lines===1?'':'s'} დაემატება`:'';
+}
+
+function savePasteList(){
+  const lines=document.getElementById('paste-input').value.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  if(!lines.length){document.getElementById('paste-input').focus();return;}
+  const now=new Date().toISOString().split('T')[0];
+  lines.forEach(title=>{
+    const id='B'+String(backlogCounter++).padStart(3,'0');
+    backlog.unshift({id,title,notes:'',project:'',created:now});
+  });
+  saveData();updateBacklogBadge();closeModal('paste-modal');renderBacklog();
 }
 
 function openBacklogModal(itemId){
