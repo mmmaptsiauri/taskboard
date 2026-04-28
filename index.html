@@ -419,9 +419,9 @@ body{font-family:'Lato',sans-serif;background:var(--bg);color:var(--ink);height:
       </div>
       <div class="action-grid" style="margin-top:16px">
         <button class="action-btn a-accent" onclick="editCurrentTask()">✏️ Edit Task</button>
-        <button class="action-btn a-green" onclick="detailAction('DONE')">✅ Mark Done</button>
-        <button class="action-btn a-blue" onclick="detailAction('IN_PROGRESS')">🔄 In Progress</button>
-        <button class="action-btn a-amber" onclick="detailAction('BLOCKED')">🚫 Blocked</button>
+        <button class="action-btn a-green" id="btn-mark-done" onclick="detailAction('DONE',this)">✅ Mark Done</button>
+        <button class="action-btn a-blue" onclick="detailAction('IN_PROGRESS',this)">🔄 In Progress</button>
+        <button class="action-btn a-amber" onclick="detailAction('BLOCKED',this)">🚫 Blocked</button>
         <button class="action-btn a-red" style="grid-column:span 2" onclick="deleteTask()">🗑️ Delete Task</button>
       </div>
     </div>
@@ -672,12 +672,13 @@ function taskCard(t){
   const hasDesc=t.description&&t.description.trim();
   const subs=t.subtasks||[];const stDone=subs.filter(s=>s.done).length;
   const stPill=subs.length?`<span class="st-progress">${stDone}/${subs.length} ☑</span>`:'';
+  const assigneeChip=t.assignee?`<span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>`:'';
   return`<div class="task-card ${pClass(t.priority)} ${done?'is-done':''} ${ov?'is-overdue':''} ${td?'is-today':''}" onclick="openDetail('${t.id}')">
     <div class="task-top">
       <div class="task-checkbox" onclick="event.stopPropagation();event.preventDefault();toggleDone('${t.id}')">${done?'✓':''}</div>
       <div class="task-body">
         <div class="task-title">${t.title}</div>
-        <div class="task-meta"><span class="task-id">${t.id}</span><span class="assignee-chip"><span class="a-dot" style="background:${c}">${t.assignee[0]}</span>${t.assignee}</span>${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}${stPill}</div>
+        <div class="task-meta"><span class="task-id">${t.id}</span>${assigneeChip}${hasDesc?'<span style="font-size:11px;color:var(--ink-faint)">📝</span>':''}${stPill}</div>
       </div>
     </div>
     <div class="task-bottom"><span class="status-pill ${sClass(t.status)}">${sLabel(t.status)}</span><span class="due-label ${dCls}">${dTxt}</span></div>
@@ -686,7 +687,8 @@ function taskCard(t){
 function renderTaskList(list){
   return[...new Set(list.map(t=>t.project))].map(p=>{
     const pt=list.filter(t=>t.project===p),c=PC[p]||'#888';
-    return`<div class="project-group"><div class="project-banner"><div class="project-stripe" style="background:${c}"></div><span class="project-name">${p}</span><span class="project-badge">${pt.length}</span></div>${pt.map(taskCard).join('')}</div>`;
+    const label=p||'— No Project —';
+    return`<div class="project-group"><div class="project-banner"><div class="project-stripe" style="background:${c}"></div><span class="project-name">${label}</span><span class="project-badge">${pt.length}</span></div>${pt.map(taskCard).join('')}</div>`;
   }).join('');
 }
 function applySort(list){
@@ -824,9 +826,12 @@ function openDetail(id){
   document.getElementById('detail-modal').classList.add('open');
 }
 function editCurrentTask(){closeModal('detail-modal');setTimeout(()=>openAddModal(currentDetailId),300);}
-function detailAction(status){
+function detailAction(status,btn){
   const t=tasks.find(t=>t.id===currentDetailId);
-  if(t){t.status=status;saveData();closeModal('detail-modal');renderTasks();updateStats();}
+  if(!t){console.error('detailAction: task not found, id=',currentDetailId);return;}
+  t.status=status;
+  if(btn){const orig=btn.textContent;btn.textContent='✓ Done!';btn.disabled=true;setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},800);}
+  saveData();closeModal('detail-modal');renderTasks();updateStats();
 }
 function deleteTask(){
   tasks=tasks.filter(t=>t.id!==currentDetailId);
@@ -1176,27 +1181,32 @@ function updateBacklogBadge(){
 
 function renderBacklog(){
   const wrap=document.getElementById('backlog-container');
-  if(!backlog.length){
+  // migrate legacy done items → tasks
+  const legacyDone=backlog.filter(x=>x.done);
+  if(legacyDone.length){
+    const todayStr=new Date().toISOString().split('T')[0];
+    legacyDone.forEach(item=>{
+      const tid='T'+String(taskCounter++).padStart(3,'0');
+      tasks.unshift({id:tid,title:item.title,project:item.project||'',assignee:'',due:todayStr,priority:'MEDIUM',status:'DONE',description:item.notes||''});
+    });
+    backlog=backlog.filter(x=>!x.done);
+    saveData();renderTasks();updateStats();
+  }
+  const list=[...backlog].sort((a,b)=>b.created.localeCompare(a.created));
+  if(!list.length){
     wrap.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--ink-faint)"><div style="font-size:40px;margin-bottom:10px">📥</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">ცარიელია</div><div style="font-size:13px">ზევით ჩაწერე → ＋ ან Enter</div></div>`;
     return;
   }
   const now=new Date();
-  const active=[...backlog].filter(x=>!x.done).sort((a,b)=>b.created.localeCompare(a.created));
-  const done=[...backlog].filter(x=>x.done).sort((a,b)=>b.created.localeCompare(a.created));
-  const sorted=[...active,...done];
   const mkAge=item=>{const d=Math.floor((now-new Date(item.created))/86400000);return d===0?'დღეს':d===1?'1d':d<7?`${d}d`:`${Math.floor(d/7)}w`;};
-  wrap.innerHTML=sorted.map(item=>{
-    const isDone=!!item.done;
+  wrap.innerHTML=list.map(item=>{
     const proj=item.project?`<span class="bl-proj">${item.project}</span>`:'';
-    const rightBtn=isDone
-      ?`<button class="bl-del" onclick="event.stopPropagation();event.preventDefault();deleteBacklogById('${item.id}')">🗑️</button>`
-      :`<button class="bl-promote" onclick="event.stopPropagation();event.preventDefault();quickPromote('${item.id}')">✅</button>`;
-    return`<div class="bl-list-item${isDone?' bl-done':''}">
-      <div class="bl-check${isDone?' done':''}" onclick="event.stopPropagation();event.preventDefault();toggleBacklogDone('${item.id}')">${isDone?'✓':''}</div>
+    return`<div class="bl-list-item">
+      <div class="bl-check" onclick="event.stopPropagation();event.preventDefault();toggleBacklogDone('${item.id}')"></div>
       <span class="bl-title" onclick="openBacklogModal('${item.id}')">${item.title}</span>
       ${proj}
       <span class="bl-age">${mkAge(item)}</span>
-      ${rightBtn}
+      <button class="bl-promote" onclick="event.stopPropagation();event.preventDefault();quickPromote('${item.id}')">✅</button>
     </div>`;
   }).join('');
 }
@@ -1225,8 +1235,11 @@ function addBacklogFromBtn(){
 
 function toggleBacklogDone(id){
   const item=backlog.find(x=>x.id===id);if(!item)return;
-  item.done=!item.done;
-  saveData();updateBacklogBadge();renderBacklog();
+  const taskId='T'+String(taskCounter++).padStart(3,'0');
+  const todayStr=new Date().toISOString().split('T')[0];
+  tasks.unshift({id:taskId,title:item.title,project:item.project||'',assignee:'',due:todayStr,priority:'MEDIUM',status:'DONE',description:item.notes||''});
+  backlog=backlog.filter(x=>x.id!==id);
+  saveData();updateBacklogBadge();renderBacklog();renderTasks();updateStats();
 }
 
 function deleteBacklogById(id){
